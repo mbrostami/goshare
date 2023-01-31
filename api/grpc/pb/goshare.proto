@@ -16,8 +16,8 @@ message ShareResponse {
 
 message RegistrationRequest {
   string Username = 1;
-  string PubKey = 2;
-  string Signature = 3;
+  bytes PubKey = 2;
+  bytes Signature = 3;
 }
 
 message InitShareRequest {

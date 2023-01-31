@@ -8,6 +8,7 @@ type Server struct {
 type User struct {
 	Username string
 	PubKey   []byte
+	PrivKey  []byte
 }
 
 type File struct {

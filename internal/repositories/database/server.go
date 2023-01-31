@@ -2,17 +2,20 @@ package database
 
 import (
 	"fmt"
+
+	"github.com/mbrostami/goshare/internal/models"
 )
 
-func (r *Repository) AddUser(username, pubKey string) error {
-	return r.insertIfNotExist(serverBucketKey, fmt.Sprintf("users-%s", username), pubKey)
+func (r *Repository) AddUserToServer(user *models.User) error {
+	return r.insertIfNotExist(serverBucketKey, fmt.Sprintf("users-%s", user.Username), user)
 }
 
-func (r *Repository) GetUser(username string) (string, error) {
-	val, err := r.get(serverBucketKey, fmt.Sprintf("users-%s", username))
+func (r *Repository) GetUserFromServer(username string) (*models.User, error) {
+	var usr models.User
+	err := r.get(serverBucketKey, fmt.Sprintf("users-%s", username), &usr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return val.(string), nil
+	return &usr, nil
 }

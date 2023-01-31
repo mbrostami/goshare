@@ -64,12 +64,15 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 func (s *Server) Register(ctx context.Context, req *pb.RegistrationRequest) (*pb.RegistrationResponse, error) {
 	err := s.serverService.RegisterUser(req.Username, req.Signature, req.PubKey)
 	if err != nil {
+		log.Error().Err(err).Send()
 		return &pb.RegistrationResponse{
 			Error: fmt.Sprintf("register user: %v", err),
 		}, nil
 	}
 
+	log.Debug().Msgf("registration was successful! %s", req.Username)
+
 	return &pb.RegistrationResponse{
-		Message: "username registered!",
+		Message: "registration was successful!",
 	}, nil
 }

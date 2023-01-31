@@ -66,19 +66,19 @@ func (r *Repository) insertIfNotExist(bucketKey []byte, key string, value interf
 	})
 }
 
-func (r *Repository) get(bucketKey []byte, key string) (interface{}, error) {
-	var value interface{}
+func (r *Repository) get(bucketKey []byte, key string, value interface{}) error {
 	err := r.db.View(func(tx *bolt.Tx) error {
 		if v := tx.Bucket(bucketKey).Get([]byte(key)); v != nil {
 			err := json.Unmarshal(v, &value)
 			if err != nil {
 				return err
 			}
+			return nil
 		}
 		return errors.New("key doesn't exist")
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return value, nil
+	return nil
 }

@@ -1,6 +1,8 @@
 package server
 
+import "github.com/mbrostami/goshare/internal/models"
+
 type Repository interface {
-	AddUser(username, pubKey string) error
-	GetUser(username string) (string, error)
+	AddUserToServer(user *models.User) error
+	GetUserFromServer(username string) (*models.User, error)
 }

@@ -27,11 +27,11 @@ func NewClient(addr string) (*Client, error) {
 	return &client, nil
 }
 
-func (c *Client) Register(ctx context.Context, username, pubKey string) error {
+func (c *Client) Register(ctx context.Context, username string, pubKey, signature []byte) error {
 	res, err := c.conn.Register(ctx, &pb.RegistrationRequest{
 		Username:  username,
 		PubKey:    pubKey,
-		Signature: "xxx",
+		Signature: signature,
 	})
 	if err != nil {
 		return err

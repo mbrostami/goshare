@@ -1,7 +1,12 @@
 package server
 
 import (
-	"fmt"
+	"bytes"
+	"errors"
+
+	"github.com/mbrostami/goshare/pkg/crypto"
+
+	"github.com/mbrostami/goshare/internal/models"
 
 	"github.com/rs/zerolog/log"
 )
@@ -14,24 +19,27 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) RegisterUser(username, signature, pubKey string) error {
-	// TODO verify the signature
-	// TODO check if user exists in the system with the same pubkey
-	// TODO for now we only support 1 pubkey per username
+func (s *Service) RegisterUser(username string, signature, pubKey []byte) error {
+	log.Debug().Msgf("verifying signature for: %s", username)
 
-	// TODO register user into the system with a pair of username -> pubkey and pubkey -> username
+	if !crypto.Verify(pubKey, []byte(username), signature) {
+		log.Debug().Msgf("signature is not valid: %x, %s, %x", pubKey, username, signature)
+		return errors.New("signature is not valid")
+	}
+
+	if user, err := s.repo.GetUserFromServer(username); err == nil {
+		if bytes.Compare(user.PubKey, pubKey) != 0 {
+			log.Debug().Msgf("user already exist: %s", username)
+			return errors.New("username has been already taken")
+		}
+
+		return nil
+	}
 
 	log.Debug().Msgf("registering user: %s", username)
 
-	return s.repo.AddUser(username, pubKey)
-}
-
-func (s *Service) GetUser(username string) {
-	pubKey, err := s.repo.GetUser(username)
-	if err != nil {
-		// TODO return err
-	}
-
-	// TODO
-	fmt.Printf("pubkey %v", pubKey)
+	return s.repo.AddUserToServer(&models.User{
+		Username: username,
+		PubKey:   pubKey,
+	})
 }
