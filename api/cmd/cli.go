@@ -5,26 +5,16 @@ import (
 	"os"
 	"sync"
 
-	"github.com/mbrostami/goshare/api/cmd/receive"
-	"github.com/rs/zerolog"
+	"github.com/mbrostami/goshare/internal/services/client"
 
-	"github.com/mbrostami/goshare/api/cmd/share"
+	"github.com/mbrostami/goshare/internal/services/server"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mbrostami/goshare/api/cmd/server"
+	"github.com/rs/zerolog"
 )
 
-type Options struct {
-	// Slice of bool will append 'true' each time the option
-	// is encountered (can be set multiple times, like -vvv)
-	Verbose []bool           `short:"v" long:"verbose" description:"Show verbose debug information"`
-	Server  *server.Options  `command:"server"`
-	Share   *share.Options   `command:"share"`
-	Receive *receive.Options `command:"receive"`
-}
-
 type Handler interface {
-	Run() error
+	Run(command *flags.Command) error
 }
 
 type Cli struct {
@@ -32,24 +22,30 @@ type Cli struct {
 	opts     *Options
 }
 
-func NewCli() *Cli {
+func NewCli(serverService *server.Service, clientService *client.Service) *Cli {
 	var cli Cli
-	cli.opts = &Options{
-		Server:  &server.Options{},
-		Share:   &share.Options{},
-		Receive: &receive.Options{},
-	}
-	cli.addHandler("server", server.New(cli.opts.Server))
-	cli.addHandler("share", share.New(cli.opts.Share))
-	cli.addHandler("receive", receive.New(cli.opts.Receive))
+	cli.opts = &Options{}
+
+	srvHandler := newServerHandler(serverService)
+	cli.opts.Server = srvHandler.opts
+	cli.handlers.Store("server", srvHandler)
+
+	shrHandler := newShareHandler(clientService)
+	cli.opts.Share = shrHandler.opts
+	cli.handlers.Store("share", shrHandler)
+
+	rcvHandler := newReceiveHandler(clientService)
+	cli.opts.Receive = rcvHandler.opts
+	cli.handlers.Store("receive", rcvHandler)
+
+	rgsHandler := newRegisterHandler(clientService)
+	cli.opts.Register = rgsHandler.opts
+	cli.handlers.Store("register", rgsHandler)
+
 	return &cli
 }
 
-func (c *Cli) addHandler(name string, h Handler) {
-	c.handlers.Store(name, h)
-}
-
-func (c *Cli) Process() error {
+func (c *Cli) Run() error {
 	parser := flags.NewParser(c.opts, flags.Default)
 	_, err := parser.Parse()
 	if err != nil {
@@ -85,5 +81,5 @@ func (c *Cli) Process() error {
 		zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	}
 
-	return command.Run()
+	return command.Run(parser.Active)
 }

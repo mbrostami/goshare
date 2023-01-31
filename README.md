@@ -30,13 +30,7 @@ Run the binary
 ### Registration 
 To register username in a server, you will need to provide your username and the path to your ssh public key.
 ```
-goshare register user --username <username> --server <address>:<port> --key <path/to/ssh/public/key>
-goshare register user --username <username> --key <path/to/ssh/public/key>
-```
-
-### Register a server
-```
-goshare register server --address <address>:<port>
+goshare register --server <address>:<port> --username <username> --key <path/to/ssh/public/key>
 ```
 
 ### Sharing files
@@ -54,6 +48,7 @@ goshare receive
 To configure the server, you can provide the following options:
 
 ```
+goshare server
 --port : listening port 
 --persist: to configure the server to persist the incoming data
 --encrypt : to configure the server to encrypt the streaming data
