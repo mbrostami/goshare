@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
@@ -47,7 +48,7 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 			log.Debug().Msgf("sending chunk to channel seq: %d", seq)
 			r := pb.ShareRequest{
 				Identifier:     uid.String(),
-				FileName:       filePath,
+				FileName:       filepath.Base(filePath),
 				SequenceNumber: seq,
 			}
 			r.Data = make([]byte, n)
