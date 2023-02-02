@@ -45,12 +45,14 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 				break
 			}
 			log.Debug().Msgf("sending chunk to channel seq: %d", seq)
-			chunkChannel <- &pb.ShareRequest{
+			r := pb.ShareRequest{
 				Identifier:     uid.String(),
 				FileName:       filePath,
 				SequenceNumber: seq,
-				Data:           buf[:n],
 			}
+			r.Data = make([]byte, n)
+			copy(r.Data, buf[:n])
+			chunkChannel <- &r
 		}
 	}()
 

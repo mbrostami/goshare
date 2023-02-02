@@ -56,6 +56,7 @@ func ListenAndServe(serverService *server.Service, addr string) error {
 func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 	log.Debug().Msg("received new share stream")
 
+	var receiverIdentifier string
 	for {
 		chunk, err := stream.Recv()
 
@@ -94,6 +95,8 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 			goto Relay
 		}
 
+		receiverIdentifier = chunk.Identifier
+
 		// TODO send to the receiver channel
 		recChan <- &pb.ReceiveResponse{
 			FileName:       chunk.FileName,
@@ -108,6 +111,13 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 			break
 		}
 	}
+	// close receiver channel
+	s.mu.RLock()
+	if recChan, ok := s.relay[receiverIdentifier]; ok {
+		close(recChan)
+	}
+	s.mu.RUnlock()
+
 	return nil
 }
 
@@ -118,9 +128,9 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 	s.relay[req.Identifier] = make(chan *pb.ReceiveResponse)
 	s.mu.Unlock()
 
-	select {
-	case response := <-s.relay[req.Identifier]:
-		log.Debug().Msgf("sending data to receiver %s", req.Identifier)
+	for response := range s.relay[req.Identifier] {
+
+		log.Debug().Msgf("sending data to receiver %s , seq: %d", req.Identifier, response.SequenceNumber)
 
 		err := receiver.Send(response)
 		if err == io.EOF {
@@ -129,11 +139,7 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 		if err != nil {
 			log.Error().Err(err).Send()
 		}
-		//case <-time.After(30 * time.Second):
-		//	break
 	}
-
-	close(s.relay[req.Identifier])
 
 	s.mu.Lock()
 	delete(s.relay, req.Identifier)
