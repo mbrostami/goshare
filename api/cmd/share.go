@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 
@@ -38,6 +41,31 @@ func (h *shareHandler) Run(command *flags.Command) error {
 	key, uid := h.clientService.GenerateKey(h.opts.Servers)
 	fmt.Printf("share this key -> %s\n", key)
 
+	if !askForConfirmation("receiver started receiving with the above key?") {
+		log.Debug().Msg("aborted")
+		return nil
+	}
+
 	log.Debug().Msg("starting the share...")
 	return h.clientService.Share(ctx, h.opts.File, uid, h.opts.Servers)
+}
+
+func askForConfirmation(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Printf("%s [Y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal().Err(err).Send()
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "" || response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
 }
