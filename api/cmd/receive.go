@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/mbrostami/goshare/internal/services/client"
 )
 
 type receiveOptions struct {
+	Key string `short:"k" long:"key" description:"download key" required:"true"`
 }
 
 type receiveHandler struct {
@@ -21,5 +25,17 @@ func newReceiveHandler(clientService *client.Service) *receiveHandler {
 }
 
 func (h *receiveHandler) Run(command *flags.Command) error {
+	ctx := context.TODO()
+	servers, id, err := h.clientService.ParseKey(h.opts.Key)
+	if err != nil {
+		return err
+	}
+
+	fileName, err := h.clientService.Receive(ctx, id, servers)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Downloaded file: %s\n", fileName)
+
 	return nil
 }

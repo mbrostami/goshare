@@ -2,66 +2,62 @@ package client
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/mbrostami/goshare/api/grpc"
-	"github.com/mbrostami/goshare/internal/models"
-	"github.com/mbrostami/goshare/pkg/crypto"
-	"github.com/rs/zerolog/log"
 )
 
 type Service struct {
-	repo Repository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService() *Service {
+	return &Service{}
 }
 
-func (s *Service) AddServer(addr string) error {
-	return s.repo.AddServer(&models.Server{
-		Address: addr,
-		Auth:    "",
-	})
-}
-
-// Register adds user to the local db and registers in remote server
-// if successful the server will be added to local db as well
-func (s *Service) Register(username, addr string) (*models.User, error) {
-	var user *models.User
-	var err error
-	user, err = s.repo.GetUser(username)
-	if err != nil {
-		pub, priv, err := crypto.GeneratePrivatePubKey()
+func (s *Service) VerifyServers(ctx context.Context, servers []string) error {
+	for _, server := range servers {
+		dialCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+		c, err := grpc.NewClient(dialCtx, server)
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		user = &models.User{
-			Username: username,
-			PubKey:   pub,
-			PrivKey:  priv,
-		}
-		log.Debug().Msgf("creating user: %s", user.Username)
-
-		if err := s.repo.AddUser(user); err != nil {
-			return nil, err
+		if err = c.Ping(dialCtx); err != nil {
+			return fmt.Errorf("server %s is not responding: %v", server, err)
 		}
 	}
 
-	c, err := grpc.NewClient(addr)
+	return nil
+}
+
+func (s *Service) GenerateKey(servers []string) (string, uuid.UUID) {
+	id := uuid.New()
+	str := fmt.Sprintf("%s/%s", id.String(), strings.Join(servers, "-"))
+	return base64.StdEncoding.EncodeToString([]byte(str)), id
+}
+
+func (s *Service) ParseKey(key string) (servers []string, id uuid.UUID, err error) {
+	str, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
-		return nil, fmt.Errorf("connecting to grpc server: %v", err)
+		return
 	}
 
-	log.Debug().Msgf("registering user: %s", user.Username)
+	parts := strings.Split(string(str), "/")
+	if len(parts) != 2 {
+		err = errors.New("key is not valid")
+		return
+	}
 
-	err = c.Register(context.Background(), username, user.PubKey, crypto.Sign(user.PrivKey, username))
+	id, err = uuid.Parse(parts[0])
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	log.Debug().Msgf("adding server: %s", addr)
-
-	return user, s.AddServer(addr)
+	servers = strings.Split(parts[1], "-")
+	return
 }

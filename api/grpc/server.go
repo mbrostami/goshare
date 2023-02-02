@@ -3,7 +3,9 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/mbrostami/goshare/internal/services/server"
@@ -15,17 +17,19 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/mbrostami/goshare/api/grpc/pb"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type Server struct {
+	mu            sync.RWMutex
+	relay         map[string]chan *pb.ReceiveResponse
 	serverService *server.Service
 	pb.UnimplementedGoShareServer
 }
 
 func NewServer(serverService *server.Service) *Server {
 	return &Server{
+		mu:            sync.RWMutex{},
+		relay:         make(map[string]chan *pb.ReceiveResponse),
 		serverService: serverService,
 	}
 }
@@ -49,30 +53,95 @@ func ListenAndServe(serverService *server.Service, addr string) error {
 	return s.Serve(listener)
 }
 
-func (s *Server) InitShare(ctx context.Context, req *pb.InitShareRequest) (*pb.InitShareResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitShare not implemented")
-}
+func (s *Server) Share(stream pb.GoShare_ShareServer) error {
+	log.Debug().Msg("received new share stream")
 
-func (s *Server) Share(server pb.GoShare_ShareServer) error {
-	return status.Errorf(codes.Unimplemented, "method Share not implemented")
+	for {
+		chunk, err := stream.Recv()
+
+		if err == io.EOF || chunk == nil {
+			// process buf as a whole file
+			log.Debug().Msg("receiving chunks finished")
+			break
+		}
+		if err != nil {
+			log.Error().Err(err).Send()
+			stream.Send(&pb.ShareResponse{
+				Error: err.Error(),
+			})
+			break
+		}
+
+		log.Debug().Msgf("received chunk %+v", chunk)
+
+		relayCounter := 0
+	Relay:
+		s.mu.RLock()
+		recChan, ok := s.relay[chunk.Identifier]
+		s.mu.RUnlock()
+		if !ok {
+			log.Info().Msg("no receiver found! waiting for 5 seconds...")
+			relayCounter++
+			if relayCounter > 3 {
+				log.Error().Msgf("receiver didn't start receiving")
+				err = fmt.Errorf("receiver didn't start receiving %s", chunk.Identifier)
+				stream.Send(&pb.ShareResponse{
+					Error: err.Error(),
+				})
+				break
+			}
+			time.Sleep(5 * time.Second)
+			goto Relay
+		}
+
+		// TODO send to the receiver channel
+		recChan <- &pb.ReceiveResponse{
+			FileName:       chunk.FileName,
+			SequenceNumber: chunk.SequenceNumber,
+			Data:           chunk.Data,
+		}
+		err = stream.Send(&pb.ShareResponse{
+			Message: "ok",
+		})
+		if err != nil {
+			log.Error().Err(err).Send()
+			break
+		}
+	}
+	return nil
 }
 
 func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServer) error {
-	return status.Errorf(codes.Unimplemented, "method Receive not implemented")
-}
+	log.Debug().Msgf("receiver start receiving on %s", req.Identifier)
 
-func (s *Server) Register(ctx context.Context, req *pb.RegistrationRequest) (*pb.RegistrationResponse, error) {
-	err := s.serverService.RegisterUser(req.Username, req.Signature, req.PubKey)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return &pb.RegistrationResponse{
-			Error: fmt.Sprintf("register user: %v", err),
-		}, nil
+	s.mu.Lock()
+	s.relay[req.Identifier] = make(chan *pb.ReceiveResponse)
+	s.mu.Unlock()
+
+	select {
+	case response := <-s.relay[req.Identifier]:
+		log.Debug().Msgf("sending data to receiver %s", req.Identifier)
+
+		err := receiver.Send(response)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Error().Err(err).Send()
+		}
+		//case <-time.After(30 * time.Second):
+		//	break
 	}
 
-	log.Debug().Msgf("registration was successful! %s", req.Username)
+	close(s.relay[req.Identifier])
 
-	return &pb.RegistrationResponse{
-		Message: "registration was successful!",
-	}, nil
+	s.mu.Lock()
+	delete(s.relay, req.Identifier)
+	s.mu.Unlock()
+
+	return nil
+}
+
+func (s *Server) Ping(ctx context.Context, _ *pb.PingMsg) (*pb.PongMsg, error) {
+	return &pb.PongMsg{Pong: true}, nil
 }

@@ -4,57 +4,38 @@ package GoShare;
 
 option go_package = "./api/grpc/pb";
 
-message RegistrationResponse {
-  string Message = 1;
-  string Error = 2;
-}
-
 message ShareResponse {
   string Message = 1;
   string Error = 2;
 }
 
-message RegistrationRequest {
-  string Username = 1;
-  bytes PubKey = 2;
-  bytes Signature = 3;
-}
-
-message InitShareRequest {
-  string Receiver = 1;
-}
-message InitShareResponse {
-  string ReceiverPubKey = 1;
-}
-
 message ShareRequest {
-  string FileName = 1;
-  string Sender = 2;
-  string SenderPubKey = 3;
-  string SenderSignature = 4;
-  string Receiver = 5;
-  int64 SequenceNumber = 6;
-  bytes Data = 7;
+  string Identifier = 1;
+  string FileName = 2;
+  int64 SequenceNumber = 3;
+  bytes Data = 4;
 }
 
 message ReceiveRequest {
-  string ReceiverUsername = 1;
-  string ReceiverPubKey = 2;
-  string ReceiverSignature = 3;
+  string Identifier = 1;
 }
 
 message ReceiveResponse {
   string FileName = 1;
-  string Sender = 2;
-  string SenderPubKey = 3;
-  string SenderSignature = 4;
-  int64 SequenceNumber = 6;
-  bytes Data = 7;
+  int64 SequenceNumber = 2;
+  bytes Data = 3;
+}
+
+message PingMsg {
+  bool Ping = 1;
+}
+
+message PongMsg {
+  bool Pong = 1;
 }
 
 service GoShare {
-  rpc InitShare(InitShareRequest) returns (InitShareResponse){};
+  rpc Ping(PingMsg) returns (PongMsg){};
   rpc Share(stream ShareRequest) returns (stream ShareResponse){};
   rpc Receive(ReceiveRequest) returns (stream ReceiveResponse){};
-  rpc Register(RegistrationRequest) returns (RegistrationResponse){};
 }

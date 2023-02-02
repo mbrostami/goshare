@@ -38,10 +38,6 @@ func NewCli(serverService *server.Service, clientService *client.Service) *Cli {
 	cli.opts.Receive = rcvHandler.opts
 	cli.handlers.Store("receive", rcvHandler)
 
-	rgsHandler := newRegisterHandler(clientService)
-	cli.opts.Register = rgsHandler.opts
-	cli.handlers.Store("register", rgsHandler)
-
 	return &cli
 }
 

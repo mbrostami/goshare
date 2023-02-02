@@ -24,61 +24,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type RegistrationResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Message string `protobuf:"bytes,1,opt,name=Message,proto3" json:"Message,omitempty"`
-	Error   string `protobuf:"bytes,2,opt,name=Error,proto3" json:"Error,omitempty"`
-}
-
-func (x *RegistrationResponse) Reset() {
-	*x = RegistrationResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RegistrationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegistrationResponse) ProtoMessage() {}
-
-func (x *RegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegistrationResponse.ProtoReflect.Descriptor instead.
-func (*RegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *RegistrationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *RegistrationResponse) GetError() string {
-	if x != nil {
-		return x.Error
-	}
-	return ""
-}
-
 type ShareResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -91,7 +36,7 @@ type ShareResponse struct {
 func (x *ShareResponse) Reset() {
 	*x = ShareResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[1]
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -104,7 +49,7 @@ func (x *ShareResponse) String() string {
 func (*ShareResponse) ProtoMessage() {}
 
 func (x *ShareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[1]
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -117,7 +62,7 @@ func (x *ShareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShareResponse.ProtoReflect.Descriptor instead.
 func (*ShareResponse) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{1}
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ShareResponse) GetMessage() string {
@@ -134,181 +79,21 @@ func (x *ShareResponse) GetError() string {
 	return ""
 }
 
-type RegistrationRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Username  string `protobuf:"bytes,1,opt,name=Username,proto3" json:"Username,omitempty"`
-	PubKey    []byte `protobuf:"bytes,2,opt,name=PubKey,proto3" json:"PubKey,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=Signature,proto3" json:"Signature,omitempty"`
-}
-
-func (x *RegistrationRequest) Reset() {
-	*x = RegistrationRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RegistrationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegistrationRequest) ProtoMessage() {}
-
-func (x *RegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegistrationRequest.ProtoReflect.Descriptor instead.
-func (*RegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *RegistrationRequest) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *RegistrationRequest) GetPubKey() []byte {
-	if x != nil {
-		return x.PubKey
-	}
-	return nil
-}
-
-func (x *RegistrationRequest) GetSignature() []byte {
-	if x != nil {
-		return x.Signature
-	}
-	return nil
-}
-
-type InitShareRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Receiver string `protobuf:"bytes,1,opt,name=Receiver,proto3" json:"Receiver,omitempty"`
-}
-
-func (x *InitShareRequest) Reset() {
-	*x = InitShareRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *InitShareRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InitShareRequest) ProtoMessage() {}
-
-func (x *InitShareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InitShareRequest.ProtoReflect.Descriptor instead.
-func (*InitShareRequest) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *InitShareRequest) GetReceiver() string {
-	if x != nil {
-		return x.Receiver
-	}
-	return ""
-}
-
-type InitShareResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	ReceiverPubKey string `protobuf:"bytes,1,opt,name=ReceiverPubKey,proto3" json:"ReceiverPubKey,omitempty"`
-}
-
-func (x *InitShareResponse) Reset() {
-	*x = InitShareResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *InitShareResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InitShareResponse) ProtoMessage() {}
-
-func (x *InitShareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InitShareResponse.ProtoReflect.Descriptor instead.
-func (*InitShareResponse) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *InitShareResponse) GetReceiverPubKey() string {
-	if x != nil {
-		return x.ReceiverPubKey
-	}
-	return ""
-}
-
 type ShareRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileName        string `protobuf:"bytes,1,opt,name=FileName,proto3" json:"FileName,omitempty"`
-	Sender          string `protobuf:"bytes,2,opt,name=Sender,proto3" json:"Sender,omitempty"`
-	SenderPubKey    string `protobuf:"bytes,3,opt,name=SenderPubKey,proto3" json:"SenderPubKey,omitempty"`
-	SenderSignature string `protobuf:"bytes,4,opt,name=SenderSignature,proto3" json:"SenderSignature,omitempty"`
-	Receiver        string `protobuf:"bytes,5,opt,name=Receiver,proto3" json:"Receiver,omitempty"`
-	SequenceNumber  int64  `protobuf:"varint,6,opt,name=SequenceNumber,proto3" json:"SequenceNumber,omitempty"`
-	Data            []byte `protobuf:"bytes,7,opt,name=Data,proto3" json:"Data,omitempty"`
+	Identifier     string `protobuf:"bytes,1,opt,name=Identifier,proto3" json:"Identifier,omitempty"`
+	FileName       string `protobuf:"bytes,2,opt,name=FileName,proto3" json:"FileName,omitempty"`
+	SequenceNumber int64  `protobuf:"varint,3,opt,name=SequenceNumber,proto3" json:"SequenceNumber,omitempty"`
+	Data           []byte `protobuf:"bytes,4,opt,name=Data,proto3" json:"Data,omitempty"`
 }
 
 func (x *ShareRequest) Reset() {
 	*x = ShareRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[5]
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -321,7 +106,7 @@ func (x *ShareRequest) String() string {
 func (*ShareRequest) ProtoMessage() {}
 
 func (x *ShareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[5]
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,40 +119,19 @@ func (x *ShareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShareRequest.ProtoReflect.Descriptor instead.
 func (*ShareRequest) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{5}
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ShareRequest) GetIdentifier() string {
+	if x != nil {
+		return x.Identifier
+	}
+	return ""
 }
 
 func (x *ShareRequest) GetFileName() string {
 	if x != nil {
 		return x.FileName
-	}
-	return ""
-}
-
-func (x *ShareRequest) GetSender() string {
-	if x != nil {
-		return x.Sender
-	}
-	return ""
-}
-
-func (x *ShareRequest) GetSenderPubKey() string {
-	if x != nil {
-		return x.SenderPubKey
-	}
-	return ""
-}
-
-func (x *ShareRequest) GetSenderSignature() string {
-	if x != nil {
-		return x.SenderSignature
-	}
-	return ""
-}
-
-func (x *ShareRequest) GetReceiver() string {
-	if x != nil {
-		return x.Receiver
 	}
 	return ""
 }
@@ -391,15 +155,13 @@ type ReceiveRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ReceiverUsername  string `protobuf:"bytes,1,opt,name=ReceiverUsername,proto3" json:"ReceiverUsername,omitempty"`
-	ReceiverPubKey    string `protobuf:"bytes,2,opt,name=ReceiverPubKey,proto3" json:"ReceiverPubKey,omitempty"`
-	ReceiverSignature string `protobuf:"bytes,3,opt,name=ReceiverSignature,proto3" json:"ReceiverSignature,omitempty"`
+	Identifier string `protobuf:"bytes,1,opt,name=Identifier,proto3" json:"Identifier,omitempty"`
 }
 
 func (x *ReceiveRequest) Reset() {
 	*x = ReceiveRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[6]
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -412,7 +174,7 @@ func (x *ReceiveRequest) String() string {
 func (*ReceiveRequest) ProtoMessage() {}
 
 func (x *ReceiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[6]
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -425,26 +187,12 @@ func (x *ReceiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveRequest.ProtoReflect.Descriptor instead.
 func (*ReceiveRequest) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{6}
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ReceiveRequest) GetReceiverUsername() string {
+func (x *ReceiveRequest) GetIdentifier() string {
 	if x != nil {
-		return x.ReceiverUsername
-	}
-	return ""
-}
-
-func (x *ReceiveRequest) GetReceiverPubKey() string {
-	if x != nil {
-		return x.ReceiverPubKey
-	}
-	return ""
-}
-
-func (x *ReceiveRequest) GetReceiverSignature() string {
-	if x != nil {
-		return x.ReceiverSignature
+		return x.Identifier
 	}
 	return ""
 }
@@ -454,18 +202,15 @@ type ReceiveResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileName        string `protobuf:"bytes,1,opt,name=FileName,proto3" json:"FileName,omitempty"`
-	Sender          string `protobuf:"bytes,2,opt,name=Sender,proto3" json:"Sender,omitempty"`
-	SenderPubKey    string `protobuf:"bytes,3,opt,name=SenderPubKey,proto3" json:"SenderPubKey,omitempty"`
-	SenderSignature string `protobuf:"bytes,4,opt,name=SenderSignature,proto3" json:"SenderSignature,omitempty"`
-	SequenceNumber  int64  `protobuf:"varint,6,opt,name=SequenceNumber,proto3" json:"SequenceNumber,omitempty"`
-	Data            []byte `protobuf:"bytes,7,opt,name=Data,proto3" json:"Data,omitempty"`
+	FileName       string `protobuf:"bytes,1,opt,name=FileName,proto3" json:"FileName,omitempty"`
+	SequenceNumber int64  `protobuf:"varint,2,opt,name=SequenceNumber,proto3" json:"SequenceNumber,omitempty"`
+	Data           []byte `protobuf:"bytes,3,opt,name=Data,proto3" json:"Data,omitempty"`
 }
 
 func (x *ReceiveResponse) Reset() {
 	*x = ReceiveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_grpc_pb_goshare_proto_msgTypes[7]
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -478,7 +223,7 @@ func (x *ReceiveResponse) String() string {
 func (*ReceiveResponse) ProtoMessage() {}
 
 func (x *ReceiveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_pb_goshare_proto_msgTypes[7]
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -491,33 +236,12 @@ func (x *ReceiveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveResponse.ProtoReflect.Descriptor instead.
 func (*ReceiveResponse) Descriptor() ([]byte, []int) {
-	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{7}
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ReceiveResponse) GetFileName() string {
 	if x != nil {
 		return x.FileName
-	}
-	return ""
-}
-
-func (x *ReceiveResponse) GetSender() string {
-	if x != nil {
-		return x.Sender
-	}
-	return ""
-}
-
-func (x *ReceiveResponse) GetSenderPubKey() string {
-	if x != nil {
-		return x.SenderPubKey
-	}
-	return ""
-}
-
-func (x *ReceiveResponse) GetSenderSignature() string {
-	if x != nil {
-		return x.SenderSignature
 	}
 	return ""
 }
@@ -536,90 +260,145 @@ func (x *ReceiveResponse) GetData() []byte {
 	return nil
 }
 
+type PingMsg struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ping bool `protobuf:"varint,1,opt,name=Ping,proto3" json:"Ping,omitempty"`
+}
+
+func (x *PingMsg) Reset() {
+	*x = PingMsg{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PingMsg) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PingMsg) ProtoMessage() {}
+
+func (x *PingMsg) ProtoReflect() protoreflect.Message {
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PingMsg.ProtoReflect.Descriptor instead.
+func (*PingMsg) Descriptor() ([]byte, []int) {
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PingMsg) GetPing() bool {
+	if x != nil {
+		return x.Ping
+	}
+	return false
+}
+
+type PongMsg struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Pong bool `protobuf:"varint,1,opt,name=Pong,proto3" json:"Pong,omitempty"`
+}
+
+func (x *PongMsg) Reset() {
+	*x = PongMsg{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_grpc_pb_goshare_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PongMsg) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PongMsg) ProtoMessage() {}
+
+func (x *PongMsg) ProtoReflect() protoreflect.Message {
+	mi := &file_api_grpc_pb_goshare_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PongMsg.ProtoReflect.Descriptor instead.
+func (*PongMsg) Descriptor() ([]byte, []int) {
+	return file_api_grpc_pb_goshare_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PongMsg) GetPong() bool {
+	if x != nil {
+		return x.Pong
+	}
+	return false
+}
+
 var File_api_grpc_pb_goshare_proto protoreflect.FileDescriptor
 
 var file_api_grpc_pb_goshare_proto_rawDesc = []byte{
 	0x0a, 0x19, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x2f, 0x70, 0x62, 0x2f, 0x67, 0x6f,
 	0x73, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x47, 0x6f, 0x53,
-	0x68, 0x61, 0x72, 0x65, 0x22, 0x46, 0x0a, 0x14, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x4d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x3f, 0x0a, 0x0d,
-	0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a,
-	0x07, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x67, 0x0a,
-	0x13, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x55, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x55, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65,
-	0x12, 0x16, 0x0a, 0x06, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x06, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12, 0x1c, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e,
-	0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x09, 0x53, 0x69, 0x67,
-	0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x22, 0x2e, 0x0a, 0x10, 0x49, 0x6e, 0x69, 0x74, 0x53, 0x68,
-	0x61, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x52, 0x65,
-	0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x52, 0x65,
-	0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x22, 0x3b, 0x0a, 0x11, 0x49, 0x6e, 0x69, 0x74, 0x53, 0x68,
-	0x61, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x52,
-	0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50, 0x75, 0x62,
-	0x4b, 0x65, 0x79, 0x22, 0xe8, 0x01, 0x0a, 0x0c, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65,
-	0x12, 0x16, 0x0a, 0x06, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0c, 0x53, 0x65, 0x6e, 0x64,
-	0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c,
-	0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12, 0x28, 0x0a, 0x0f,
-	0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18,
-	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x53, 0x69, 0x67,
-	0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76,
-	0x65, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76,
-	0x65, 0x72, 0x12, 0x26, 0x0a, 0x0e, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75,
-	0x6d, 0x62, 0x65, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x53, 0x65, 0x71, 0x75,
+	0x68, 0x61, 0x72, 0x65, 0x22, 0x3f, 0x0a, 0x0d, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12,
+	0x14, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x45, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x86, 0x01, 0x0a, 0x0c, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x66, 0x69, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x49, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61,
+	0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61,
+	0x6d, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x53, 0x65, 0x71, 0x75,
 	0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61,
-	0x74, 0x61, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x92,
-	0x01, 0x0a, 0x0e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x2a, 0x0a, 0x10, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x55, 0x73, 0x65,
-	0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x10, 0x52, 0x65, 0x63,
-	0x65, 0x69, 0x76, 0x65, 0x72, 0x55, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x26, 0x0a,
-	0x0e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50,
-	0x75, 0x62, 0x4b, 0x65, 0x79, 0x12, 0x2c, 0x0a, 0x11, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65,
-	0x72, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x11, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74,
-	0x75, 0x72, 0x65, 0x22, 0xcf, 0x01, 0x0a, 0x0f, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e,
-	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e,
-	0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0c, 0x53,
-	0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x0c, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12,
-	0x28, 0x0a, 0x0f, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75,
-	0x72, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x53, 0x65, 0x6e, 0x64, 0x65, 0x72,
-	0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x53, 0x65, 0x71,
-	0x75, 0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x0e, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65,
-	0x72, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0c, 0x52,
-	0x04, 0x44, 0x61, 0x74, 0x61, 0x32, 0x9a, 0x02, 0x0a, 0x07, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72,
-	0x65, 0x12, 0x44, 0x0a, 0x09, 0x49, 0x6e, 0x69, 0x74, 0x53, 0x68, 0x61, 0x72, 0x65, 0x12, 0x19,
-	0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x49, 0x6e, 0x69, 0x74, 0x53, 0x68, 0x61,
-	0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x47, 0x6f, 0x53, 0x68,
-	0x61, 0x72, 0x65, 0x2e, 0x49, 0x6e, 0x69, 0x74, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3c, 0x0a, 0x05, 0x53, 0x68, 0x61, 0x72, 0x65,
-	0x12, 0x15, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x53, 0x68, 0x61, 0x72, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72,
-	0x65, 0x2e, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x28, 0x01, 0x30, 0x01, 0x12, 0x40, 0x0a, 0x07, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65,
-	0x12, 0x17, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69,
-	0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x47, 0x6f, 0x53, 0x68,
-	0x61, 0x72, 0x65, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x49, 0x0a, 0x08, 0x52, 0x65, 0x67, 0x69, 0x73,
-	0x74, 0x65, 0x72, 0x12, 0x1c, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x52, 0x65,
-	0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x1d, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x52, 0x65, 0x67, 0x69,
-	0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x72, 0x70, 0x63,
-	0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x61, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x30,
+	0x0a, 0x0e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x1e, 0x0a, 0x0a, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72,
+	0x22, 0x69, 0x0a, 0x0f, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12,
+	0x26, 0x0a, 0x0e, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65,
+	0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x53, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63,
+	0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x1d, 0x0a, 0x07, 0x50,
+	0x69, 0x6e, 0x67, 0x4d, 0x73, 0x67, 0x12, 0x12, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x22, 0x1d, 0x0a, 0x07, 0x50, 0x6f,
+	0x6e, 0x67, 0x4d, 0x73, 0x67, 0x12, 0x12, 0x0a, 0x04, 0x50, 0x6f, 0x6e, 0x67, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x04, 0x50, 0x6f, 0x6e, 0x67, 0x32, 0xb7, 0x01, 0x0a, 0x07, 0x47, 0x6f,
+	0x53, 0x68, 0x61, 0x72, 0x65, 0x12, 0x2c, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x10, 0x2e,
+	0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x4d, 0x73, 0x67, 0x1a,
+	0x10, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x50, 0x6f, 0x6e, 0x67, 0x4d, 0x73,
+	0x67, 0x22, 0x00, 0x12, 0x3c, 0x0a, 0x05, 0x53, 0x68, 0x61, 0x72, 0x65, 0x12, 0x15, 0x2e, 0x47,
+	0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x53, 0x68, 0x61, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x53, 0x68,
+	0x61, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x30,
+	0x01, 0x12, 0x40, 0x0a, 0x07, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x12, 0x17, 0x2e, 0x47,
+	0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x47, 0x6f, 0x53, 0x68, 0x61, 0x72, 0x65, 0x2e,
+	0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x30, 0x01, 0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x72, 0x70,
+	0x63, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -634,28 +413,24 @@ func file_api_grpc_pb_goshare_proto_rawDescGZIP() []byte {
 	return file_api_grpc_pb_goshare_proto_rawDescData
 }
 
-var file_api_grpc_pb_goshare_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_grpc_pb_goshare_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_api_grpc_pb_goshare_proto_goTypes = []interface{}{
-	(*RegistrationResponse)(nil), // 0: GoShare.RegistrationResponse
-	(*ShareResponse)(nil),        // 1: GoShare.ShareResponse
-	(*RegistrationRequest)(nil),  // 2: GoShare.RegistrationRequest
-	(*InitShareRequest)(nil),     // 3: GoShare.InitShareRequest
-	(*InitShareResponse)(nil),    // 4: GoShare.InitShareResponse
-	(*ShareRequest)(nil),         // 5: GoShare.ShareRequest
-	(*ReceiveRequest)(nil),       // 6: GoShare.ReceiveRequest
-	(*ReceiveResponse)(nil),      // 7: GoShare.ReceiveResponse
+	(*ShareResponse)(nil),   // 0: GoShare.ShareResponse
+	(*ShareRequest)(nil),    // 1: GoShare.ShareRequest
+	(*ReceiveRequest)(nil),  // 2: GoShare.ReceiveRequest
+	(*ReceiveResponse)(nil), // 3: GoShare.ReceiveResponse
+	(*PingMsg)(nil),         // 4: GoShare.PingMsg
+	(*PongMsg)(nil),         // 5: GoShare.PongMsg
 }
 var file_api_grpc_pb_goshare_proto_depIdxs = []int32{
-	3, // 0: GoShare.GoShare.InitShare:input_type -> GoShare.InitShareRequest
-	5, // 1: GoShare.GoShare.Share:input_type -> GoShare.ShareRequest
-	6, // 2: GoShare.GoShare.Receive:input_type -> GoShare.ReceiveRequest
-	2, // 3: GoShare.GoShare.Register:input_type -> GoShare.RegistrationRequest
-	4, // 4: GoShare.GoShare.InitShare:output_type -> GoShare.InitShareResponse
-	1, // 5: GoShare.GoShare.Share:output_type -> GoShare.ShareResponse
-	7, // 6: GoShare.GoShare.Receive:output_type -> GoShare.ReceiveResponse
-	0, // 7: GoShare.GoShare.Register:output_type -> GoShare.RegistrationResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	4, // 0: GoShare.GoShare.Ping:input_type -> GoShare.PingMsg
+	1, // 1: GoShare.GoShare.Share:input_type -> GoShare.ShareRequest
+	2, // 2: GoShare.GoShare.Receive:input_type -> GoShare.ReceiveRequest
+	5, // 3: GoShare.GoShare.Ping:output_type -> GoShare.PongMsg
+	0, // 4: GoShare.GoShare.Share:output_type -> GoShare.ShareResponse
+	3, // 5: GoShare.GoShare.Receive:output_type -> GoShare.ReceiveResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -668,18 +443,6 @@ func file_api_grpc_pb_goshare_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_api_grpc_pb_goshare_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistrationResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_api_grpc_pb_goshare_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ShareResponse); i {
 			case 0:
 				return &v.state
@@ -691,43 +454,7 @@ func file_api_grpc_pb_goshare_proto_init() {
 				return nil
 			}
 		}
-		file_api_grpc_pb_goshare_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistrationRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_api_grpc_pb_goshare_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InitShareRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_api_grpc_pb_goshare_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InitShareResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_api_grpc_pb_goshare_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_api_grpc_pb_goshare_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ShareRequest); i {
 			case 0:
 				return &v.state
@@ -739,7 +466,7 @@ func file_api_grpc_pb_goshare_proto_init() {
 				return nil
 			}
 		}
-		file_api_grpc_pb_goshare_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_api_grpc_pb_goshare_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ReceiveRequest); i {
 			case 0:
 				return &v.state
@@ -751,8 +478,32 @@ func file_api_grpc_pb_goshare_proto_init() {
 				return nil
 			}
 		}
-		file_api_grpc_pb_goshare_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_api_grpc_pb_goshare_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ReceiveResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_grpc_pb_goshare_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PingMsg); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_grpc_pb_goshare_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PongMsg); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -770,7 +521,7 @@ func file_api_grpc_pb_goshare_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_grpc_pb_goshare_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -796,10 +547,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type GoShareClient interface {
-	InitShare(ctx context.Context, in *InitShareRequest, opts ...grpc.CallOption) (*InitShareResponse, error)
+	Ping(ctx context.Context, in *PingMsg, opts ...grpc.CallOption) (*PongMsg, error)
 	Share(ctx context.Context, opts ...grpc.CallOption) (GoShare_ShareClient, error)
 	Receive(ctx context.Context, in *ReceiveRequest, opts ...grpc.CallOption) (GoShare_ReceiveClient, error)
-	Register(ctx context.Context, in *RegistrationRequest, opts ...grpc.CallOption) (*RegistrationResponse, error)
 }
 
 type goShareClient struct {
@@ -810,9 +560,9 @@ func NewGoShareClient(cc grpc.ClientConnInterface) GoShareClient {
 	return &goShareClient{cc}
 }
 
-func (c *goShareClient) InitShare(ctx context.Context, in *InitShareRequest, opts ...grpc.CallOption) (*InitShareResponse, error) {
-	out := new(InitShareResponse)
-	err := c.cc.Invoke(ctx, "/GoShare.GoShare/InitShare", in, out, opts...)
+func (c *goShareClient) Ping(ctx context.Context, in *PingMsg, opts ...grpc.CallOption) (*PongMsg, error) {
+	out := new(PongMsg)
+	err := c.cc.Invoke(ctx, "/GoShare.GoShare/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -882,29 +632,19 @@ func (x *goShareReceiveClient) Recv() (*ReceiveResponse, error) {
 	return m, nil
 }
 
-func (c *goShareClient) Register(ctx context.Context, in *RegistrationRequest, opts ...grpc.CallOption) (*RegistrationResponse, error) {
-	out := new(RegistrationResponse)
-	err := c.cc.Invoke(ctx, "/GoShare.GoShare/Register", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GoShareServer is the server API for GoShare service.
 type GoShareServer interface {
-	InitShare(context.Context, *InitShareRequest) (*InitShareResponse, error)
+	Ping(context.Context, *PingMsg) (*PongMsg, error)
 	Share(GoShare_ShareServer) error
 	Receive(*ReceiveRequest, GoShare_ReceiveServer) error
-	Register(context.Context, *RegistrationRequest) (*RegistrationResponse, error)
 }
 
 // UnimplementedGoShareServer can be embedded to have forward compatible implementations.
 type UnimplementedGoShareServer struct {
 }
 
-func (*UnimplementedGoShareServer) InitShare(context.Context, *InitShareRequest) (*InitShareResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitShare not implemented")
+func (*UnimplementedGoShareServer) Ping(context.Context, *PingMsg) (*PongMsg, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (*UnimplementedGoShareServer) Share(GoShare_ShareServer) error {
 	return status.Errorf(codes.Unimplemented, "method Share not implemented")
@@ -912,28 +652,25 @@ func (*UnimplementedGoShareServer) Share(GoShare_ShareServer) error {
 func (*UnimplementedGoShareServer) Receive(*ReceiveRequest, GoShare_ReceiveServer) error {
 	return status.Errorf(codes.Unimplemented, "method Receive not implemented")
 }
-func (*UnimplementedGoShareServer) Register(context.Context, *RegistrationRequest) (*RegistrationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
-}
 
 func RegisterGoShareServer(s *grpc.Server, srv GoShareServer) {
 	s.RegisterService(&_GoShare_serviceDesc, srv)
 }
 
-func _GoShare_InitShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitShareRequest)
+func _GoShare_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingMsg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GoShareServer).InitShare(ctx, in)
+		return srv.(GoShareServer).Ping(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/GoShare.GoShare/InitShare",
+		FullMethod: "/GoShare.GoShare/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GoShareServer).InitShare(ctx, req.(*InitShareRequest))
+		return srv.(GoShareServer).Ping(ctx, req.(*PingMsg))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -985,35 +722,13 @@ func (x *goShareReceiveServer) Send(m *ReceiveResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _GoShare_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegistrationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GoShareServer).Register(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/GoShare.GoShare/Register",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GoShareServer).Register(ctx, req.(*RegistrationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _GoShare_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "GoShare.GoShare",
 	HandlerType: (*GoShareServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "InitShare",
-			Handler:    _GoShare_InitShare_Handler,
-		},
-		{
-			MethodName: "Register",
-			Handler:    _GoShare_Register_Handler,
+			MethodName: "Ping",
+			Handler:    _GoShare_Ping_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
