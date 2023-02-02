@@ -73,7 +73,7 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 			break
 		}
 
-		log.Debug().Msgf("received chunk %+v", chunk)
+		log.Debug().Msgf("received chunk %d", chunk.SequenceNumber)
 
 		relayCounter := 0
 	Relay:
@@ -149,5 +149,6 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 }
 
 func (s *Server) Ping(ctx context.Context, _ *pb.PingMsg) (*pb.PongMsg, error) {
+	log.Debug().Msg("Pong!")
 	return &pb.PongMsg{Pong: true}, nil
 }

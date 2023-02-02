@@ -47,7 +47,7 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 	}
 
 	for chunk := range chunks {
-		log.Debug().Msgf("streaming chunk to server: %+v", chunk)
+		log.Debug().Msgf("streaming chunk to server: %d : %s", chunk.SequenceNumber)
 		err := stream.Send(chunk)
 		if err != nil {
 			log.Error().Msgf("failed to send chunk: %v", err)

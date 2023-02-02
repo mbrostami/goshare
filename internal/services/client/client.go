@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/mbrostami/goshare/api/grpc"
+	"golang.org/x/sync/errgroup"
 )
 
 type Service struct {
@@ -21,15 +21,25 @@ func NewService() *Service {
 }
 
 func (s *Service) VerifyServers(ctx context.Context, servers []string) error {
+	eg := new(errgroup.Group)
 	for _, server := range servers {
-		dialCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
-		c, err := grpc.NewClient(dialCtx, server)
-		if err != nil {
-			return err
-		}
-		if err = c.Ping(dialCtx); err != nil {
-			return fmt.Errorf("server %s is not responding: %v", server, err)
-		}
+		server := server // https://golang.org/doc/faq#closures_and_goroutines
+		eg.Go(func() error {
+			dialCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+			c, err := grpc.NewClient(dialCtx, server)
+			if err != nil {
+				return err
+			}
+
+			if err = c.Ping(dialCtx); err != nil {
+				return fmt.Errorf("server %s is not responding: %v", server, err)
+			}
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	return nil
