@@ -41,10 +41,10 @@ func (h *shareHandler) Run(command *flags.Command) error {
 	key, uid := h.clientService.GenerateKey(h.opts.Servers)
 	fmt.Printf("share this key -> %s\n", key)
 
-	if !askForConfirmation("receiver started receiving with the above key?") {
-		log.Debug().Msg("aborted")
-		return nil
-	}
+	//if !askForConfirmation("receiver started receiving with the above key?") {
+	//	log.Debug().Msg("aborted")
+	//	return nil
+	//}
 
 	log.Debug().Msg("starting the share...")
 	return h.clientService.Share(ctx, h.opts.File, uid, h.opts.Servers)

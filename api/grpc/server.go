@@ -62,13 +62,14 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 
 		if err == io.EOF || chunk == nil {
 			// process buf as a whole file
-			log.Debug().Msg("receiving chunks finished")
+			//log.Debug().Msg("receiving chunks finished")
 			break
 		}
 		if err != nil {
 			log.Error().Err(err).Send()
 			stream.Send(&pb.ShareResponse{
-				Error: err.Error(),
+				Message: "retry",
+				Error:   err.Error(),
 			})
 			break
 		}
@@ -83,11 +84,12 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 		if !ok {
 			log.Info().Msg("no receiver found! waiting for 5 seconds...")
 			relayCounter++
-			if relayCounter > 3 {
+			if relayCounter > 10 {
 				log.Error().Msgf("receiver didn't start receiving")
 				err = fmt.Errorf("receiver didn't start receiving %s", chunk.Identifier)
 				stream.Send(&pb.ShareResponse{
-					Error: err.Error(),
+					Message: "retry",
+					Error:   err.Error(),
 				})
 				break
 			}
@@ -112,11 +114,12 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 		}
 	}
 	// close receiver channel
-	s.mu.RLock()
+	s.mu.Lock()
 	if recChan, ok := s.relay[receiverIdentifier]; ok {
 		close(recChan)
+		delete(s.relay, receiverIdentifier)
 	}
-	s.mu.RUnlock()
+	s.mu.Unlock()
 
 	return nil
 }
@@ -140,10 +143,6 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 			log.Error().Err(err).Send()
 		}
 	}
-
-	s.mu.Lock()
-	delete(s.relay, req.Identifier)
-	s.mu.Unlock()
 
 	return nil
 }

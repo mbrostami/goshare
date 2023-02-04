@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"golang.org/x/sync/errgroup"
 	"io"
 	"os"
 	"path/filepath"
@@ -21,14 +22,30 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 	}
 	defer file.Close()
 
-	client, err := grpc.NewClientLoadBalancer(servers)
-	if err != nil {
-		return err
-	}
-
-	log.Debug().Msg("connection to servers was successful!")
-
+	//TODO fixed size
+	//fi, err := file.Stat()
+	//if err != nil {
+	//	return err
+	//}
+	//chunkChannel := make(chan *pb.ShareRequest, (fi.Size()%1024)+1)
 	chunkChannel := make(chan *pb.ShareRequest)
+	defer close(chunkChannel)
+
+	eg, _ := errgroup.WithContext(ctx)
+	for _, server := range servers {
+		c, err := grpc.NewClient(ctx, server)
+		if err != nil {
+			return err
+		}
+		eg.Go(func() error {
+			if err = c.Share(ctx, uid, chunkChannel); err != nil {
+				log.Error().Err(err).Send()
+				return err
+			}
+			return nil
+		})
+	}
+	log.Debug().Msg("connection to servers was successful!")
 
 	buf := make([]byte, 1024)
 	var seq int64
@@ -39,12 +56,25 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		n, err := file.Read(buf)
 		if err == io.EOF {
 			log.Debug().Msg("sending chunk to channel finished!")
-			close(chunkChannel)
+			// send nil to receiver so receiver knows it's done
+			pbr := pb.ShareRequest{
+				Identifier:     uid.String(),
+				FileName:       filepath.Base(filePath),
+				SequenceNumber: -1,
+			}
+			chunkChannel <- &pbr
 			break
 		}
 		if err != nil {
 			log.Error().Msgf("failed to read file: %v", err)
-			close(chunkChannel)
+
+			// send nil to receiver so receiver knows it's done
+			pbr := pb.ShareRequest{
+				Identifier:     uid.String(),
+				FileName:       filepath.Base(filePath),
+				SequenceNumber: -1,
+			}
+			chunkChannel <- &pbr
 			break
 		}
 		log.Debug().Msgf("sending chunk to channel seq: %d", seq)
@@ -58,9 +88,7 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		wg.Add(1)
 		semaphore <- struct{}{}
 		go func() {
-			if err = client.Share(ctx, uid, &r); err != nil {
-				log.Error().Err(err).Send()
-			}
+			chunkChannel <- &r
 			<-semaphore
 			wg.Done()
 		}()
