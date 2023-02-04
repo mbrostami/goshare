@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/mbrostami/goshare/internal/services/client"
 )
@@ -28,6 +30,11 @@ func (h *receiveHandler) Run(command *flags.Command) error {
 	ctx := context.TODO()
 	servers, id, err := h.clientService.ParseKey(h.opts.Key)
 	if err != nil {
+		return err
+	}
+
+	log.Debug().Msg("checking servers...")
+	if err := h.clientService.VerifyServers(ctx, servers); err != nil {
 		return err
 	}
 

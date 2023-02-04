@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
@@ -31,31 +32,39 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 
 	buf := make([]byte, 1024)
 	var seq int64
-	go func() {
-		for {
-			seq++
-			n, err := file.Read(buf)
-			if err == io.EOF {
-				log.Debug().Msg("sending chunk to channel finished!")
-				close(chunkChannel)
-				break
-			}
-			if err != nil {
-				log.Error().Msgf("failed to read file: %v", err)
-				close(chunkChannel)
-				break
-			}
-			log.Debug().Msgf("sending chunk to channel seq: %d", seq)
-			r := pb.ShareRequest{
-				Identifier:     uid.String(),
-				FileName:       filepath.Base(filePath),
-				SequenceNumber: seq,
-			}
-			r.Data = make([]byte, n)
-			copy(r.Data, buf[:n])
-			chunkChannel <- &r
+	wg := &sync.WaitGroup{}
+	semaphore := make(chan struct{}, 4)
+	for {
+		seq++
+		n, err := file.Read(buf)
+		if err == io.EOF {
+			log.Debug().Msg("sending chunk to channel finished!")
+			close(chunkChannel)
+			break
 		}
-	}()
-
-	return client.Share(ctx, uid, chunkChannel)
+		if err != nil {
+			log.Error().Msgf("failed to read file: %v", err)
+			close(chunkChannel)
+			break
+		}
+		log.Debug().Msgf("sending chunk to channel seq: %d", seq)
+		r := pb.ShareRequest{
+			Identifier:     uid.String(),
+			FileName:       filepath.Base(filePath),
+			SequenceNumber: seq,
+		}
+		r.Data = make([]byte, n)
+		copy(r.Data, buf[:n])
+		wg.Add(1)
+		semaphore <- struct{}{}
+		go func() {
+			if err = client.Share(ctx, uid, &r); err != nil {
+				log.Error().Err(err).Send()
+			}
+			<-semaphore
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	return nil
 }

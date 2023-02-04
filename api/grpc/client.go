@@ -38,55 +38,54 @@ func (c *Client) Ping(ctx context.Context) error {
 	return err
 }
 
-func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.ShareRequest) error {
+func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunk *pb.ShareRequest) error {
 	stream, err := c.conn.Share(ctx)
-	defer stream.CloseSend()
 	if err != nil {
 		log.Error().Msgf("failed to stream file: %v", err)
 		return err
 	}
 
-	for chunk := range chunks {
-		log.Debug().Msgf("streaming chunk to server: %d : %s", chunk.SequenceNumber)
-		err := stream.Send(chunk)
-		if err != nil {
-			log.Error().Msgf("failed to send chunk: %v", err)
-			return err
-		}
-		response, err := stream.Recv()
-		if err == io.EOF {
-			log.Debug().Msg("streaming response finished")
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("failed to receive response chunk: %v", err)
-		}
-
-		log.Debug().Msgf("streaming response received %+v", response)
-		if response.Error != "" {
-			log.Error().Msgf("received response %s", response.Error)
-			return fmt.Errorf("received response %s", response.Error)
-		}
+	log.Debug().Msgf("streaming chunk to server: %d : %s", chunk.SequenceNumber)
+	err = stream.Send(chunk)
+	if err != nil {
+		log.Error().Msgf("failed to send chunk: %v", err)
+		return err
 	}
+
+	response, err := stream.Recv()
+	if err == io.EOF {
+		log.Debug().Msg("streaming response finished")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to receive response chunk: %v", err)
+	}
+
+	log.Debug().Msgf("streaming response received %+v", response)
+	if response.Error != "" {
+		log.Error().Msgf("received response %s", response.Error)
+		return fmt.Errorf("received response %s", response.Error)
+	}
+
 	return nil
 }
 
-func (c *Client) Receive(ctx context.Context, id uuid.UUID, opts ...grpc.CallOption) (string, error) {
+func (c *Client) Receive(ctx context.Context, id uuid.UUID, resChan chan *pb.ReceiveResponse) error {
 	log.Debug().Msgf("client sending receive request")
-	stram, err := c.conn.Receive(ctx, &pb.ReceiveRequest{Identifier: id.String()})
+	stream, err := c.conn.Receive(ctx, &pb.ReceiveRequest{Identifier: id.String()})
 	if err != nil {
-		return "", err
+		return err
 	}
-	defer stram.CloseSend()
+	defer stream.CloseSend()
 
-	//buf := make([][]byte, 0)
 	var fileName string
 	var file *os.File
 	defer file.Close()
 	var nextSequence int64
 	nextSequence = 1
 	for {
-		res, err := stram.Recv()
+		res, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
@@ -94,6 +93,8 @@ func (c *Client) Receive(ctx context.Context, id uuid.UUID, opts ...grpc.CallOpt
 			log.Error().Err(err).Send()
 			break
 		}
+		resChan <- res
+		continue
 		if fileName == "" {
 			fileName = res.FileName
 			// Create a file to store the received chunks
@@ -115,5 +116,5 @@ func (c *Client) Receive(ctx context.Context, id uuid.UUID, opts ...grpc.CallOpt
 			break
 		}
 	}
-	return fileName, nil
+	return nil
 }
