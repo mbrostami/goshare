@@ -46,7 +46,9 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		}
 	}
 
-	chunkChannel := make(chan *pb.ShareRequest, MaxConcurrentShare)
+	// chunkChannel := make(chan *pb.ShareRequest, fi.Size()%1024)
+	chunkChannel := make(chan *pb.ShareRequest, len(servers)*2) // 2 per server
+
 	eg, _ := errgroup.WithContext(ctx)
 	for i, _ := range servers {
 		index := i
@@ -60,9 +62,19 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		})
 	}
 
+	var breakLoop bool
+	go func() {
+		if err := eg.Wait(); err != nil {
+			breakLoop = true
+		}
+	}()
+
 	buf := make([]byte, 1024)
 	var seq int64
 	for {
+		if breakLoop {
+			break
+		}
 		seq++
 		n, err := file.Read(buf)
 		if err == io.EOF {

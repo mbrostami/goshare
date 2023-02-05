@@ -11,6 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const MaxConcurrent = 5
+
 func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string, fileSize int64) error {
 	res, err := c.conn.ShareInit(ctx, &pb.ShareInitRequest{
 		Identifier: uid.String(),
@@ -37,11 +39,12 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 		return err
 	}
 
-	semaphore := make(chan struct{}, 5)
+	semaphore := make(chan struct{}, MaxConcurrent)
 	for chunk := range chunks {
 		semaphore <- struct{}{}
 
-		log.Debug().Msgf("streaming chunk to server: %d : %s", chunk.SequenceNumber)
+		// TODO goroutine
+		log.Debug().Msgf("streaming chunk to server: %d", chunk.SequenceNumber)
 		err = stream.Send(chunk)
 		if err != nil {
 			log.Error().Msgf("failed to send chunk: %v", err)

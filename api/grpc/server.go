@@ -110,8 +110,6 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 		chunk, err := stream.Recv()
 
 		if err == io.EOF || chunk == nil {
-			// process buf as a whole file
-			//log.Debug().Msg("receiving chunks finished")
 			break
 		}
 		if err != nil {
