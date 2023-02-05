@@ -6,7 +6,19 @@ import (
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/rs/zerolog/log"
 	"io"
+	"time"
 )
+
+func (c *Client) ReceiveInit(ctx context.Context, id uuid.UUID) (string, error) {
+	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
+	res, err := c.conn.ReceiveInit(ctx, &pb.ReceiveRequest{
+		Identifier: id.String(),
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.FileName, nil
+}
 
 func (c *Client) Receive(ctx context.Context, id uuid.UUID, resChan chan *pb.ReceiveResponse) error {
 	log.Debug().Msgf("client sending receive request")

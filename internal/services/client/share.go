@@ -32,11 +32,21 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 	defer close(chunkChannel)
 
 	eg, _ := errgroup.WithContext(ctx)
-	for _, server := range servers {
+	for i, server := range servers {
 		c, err := grpc.NewClient(ctx, server)
 		if err != nil {
 			return err
 		}
+
+		if i == 0 {
+			err := c.ShareInit(ctx, uid, filepath.Base(filePath))
+			log.Debug().Msgf("start initializing share with %s: got %+v", server, err)
+			if err != nil {
+				log.Error().Msgf("couldn't initialize share %+v", err)
+				return err
+			}
+		}
+
 		eg.Go(func() error {
 			if err = c.Share(ctx, uid, chunkChannel); err != nil {
 				log.Error().Err(err).Send()
@@ -59,7 +69,6 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 			// send nil to receiver so receiver knows it's done
 			pbr := pb.ShareRequest{
 				Identifier:     uid.String(),
-				FileName:       filepath.Base(filePath),
 				SequenceNumber: -1,
 			}
 			chunkChannel <- &pbr
@@ -71,7 +80,6 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 			// send nil to receiver so receiver knows it's done
 			pbr := pb.ShareRequest{
 				Identifier:     uid.String(),
-				FileName:       filepath.Base(filePath),
 				SequenceNumber: -1,
 			}
 			chunkChannel <- &pbr
@@ -80,7 +88,6 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		log.Debug().Msgf("sending chunk to channel seq: %d", seq)
 		r := pb.ShareRequest{
 			Identifier:     uid.String(),
-			FileName:       filepath.Base(filePath),
 			SequenceNumber: seq,
 		}
 		r.Data = make([]byte, n)
