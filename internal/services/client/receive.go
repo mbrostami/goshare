@@ -15,11 +15,10 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	log.Trace().Msg("connection to servers was successful!")
 
 	var fileName string
+	var fileSize int64
 	resChan := make(chan *pb.ReceiveResponse)
 
 	initwq := &sync.WaitGroup{}
-	initctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	connections := make([]*grpc.Client, len(servers))
 	var err error
 	for i, server := range servers {
@@ -29,20 +28,22 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 		}
 		initwq.Add(1)
 		go func(index int, server string) {
-			res, e := connections[index].ReceiveInit(initctx, uid)
-			log.Trace().Msgf("receive initialize: %s: %v: %+v", server, res, e)
+			res, fs, err := connections[index].ReceiveInit(ctx, uid)
+			log.Trace().Msgf("receive initialize: %s: %v: %+v", server, res, err)
 			if res != "" {
 				fileName = res
-				cancel()
+				fileSize = fs
 			}
 			initwq.Done()
 		}(i, server)
 	}
 	initwq.Wait()
 
-	if fileName == "" {
+	if fileName == "" || fileSize < 1 {
 		return "", errors.New("couldn't get fileName")
 	}
+
+	log.Info().Msgf("receiving file %s size: %d", fileName, fileSize)
 
 	wg := &sync.WaitGroup{}
 	for i, _ := range servers {

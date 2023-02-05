@@ -9,9 +9,15 @@ message ShareResponse {
   string Error = 2;
 }
 
+message ShareInitResponse {
+  string Message = 1;
+  string Error = 2;
+}
+
 message ShareInitRequest {
   string Identifier = 1;
   string FileName = 2;
+  int64 FileSize = 3;
 }
 
 message ShareRequest {
@@ -22,10 +28,12 @@ message ShareRequest {
 
 message ReceiveRequest {
   string Identifier = 1;
+  int32 Semaphore = 2;
 }
 
 message ReceiveInitResponse {
   string FileName = 1;
+  int64 FileSize = 2;
 }
 
 message ReceiveResponse {
@@ -42,7 +50,7 @@ message PongMsg {
 }
 service GoShare {
   rpc Ping(PingMsg) returns (PongMsg){};
-  rpc ShareInit(ShareInitRequest) returns (ShareResponse){};
+  rpc ShareInit(ShareInitRequest) returns (ShareInitResponse){};
   rpc Share(stream ShareRequest) returns (stream ShareResponse){};
   rpc ReceiveInit(ReceiveRequest) returns (ReceiveInitResponse){};
   rpc Receive(ReceiveRequest) returns (stream ReceiveResponse){};

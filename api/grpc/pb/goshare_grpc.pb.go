@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GoShareClient interface {
 	Ping(ctx context.Context, in *PingMsg, opts ...grpc.CallOption) (*PongMsg, error)
-	ShareInit(ctx context.Context, in *ShareInitRequest, opts ...grpc.CallOption) (*ShareResponse, error)
+	ShareInit(ctx context.Context, in *ShareInitRequest, opts ...grpc.CallOption) (*ShareInitResponse, error)
 	Share(ctx context.Context, opts ...grpc.CallOption) (GoShare_ShareClient, error)
 	ReceiveInit(ctx context.Context, in *ReceiveRequest, opts ...grpc.CallOption) (*ReceiveInitResponse, error)
 	Receive(ctx context.Context, in *ReceiveRequest, opts ...grpc.CallOption) (GoShare_ReceiveClient, error)
@@ -46,8 +46,8 @@ func (c *goShareClient) Ping(ctx context.Context, in *PingMsg, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *goShareClient) ShareInit(ctx context.Context, in *ShareInitRequest, opts ...grpc.CallOption) (*ShareResponse, error) {
-	out := new(ShareResponse)
+func (c *goShareClient) ShareInit(ctx context.Context, in *ShareInitRequest, opts ...grpc.CallOption) (*ShareInitResponse, error) {
+	out := new(ShareInitResponse)
 	err := c.cc.Invoke(ctx, "/GoShare.GoShare/ShareInit", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (x *goShareReceiveClient) Recv() (*ReceiveResponse, error) {
 // for forward compatibility
 type GoShareServer interface {
 	Ping(context.Context, *PingMsg) (*PongMsg, error)
-	ShareInit(context.Context, *ShareInitRequest) (*ShareResponse, error)
+	ShareInit(context.Context, *ShareInitRequest) (*ShareInitResponse, error)
 	Share(GoShare_ShareServer) error
 	ReceiveInit(context.Context, *ReceiveRequest) (*ReceiveInitResponse, error)
 	Receive(*ReceiveRequest, GoShare_ReceiveServer) error
@@ -146,7 +146,7 @@ type UnimplementedGoShareServer struct {
 func (UnimplementedGoShareServer) Ping(context.Context, *PingMsg) (*PongMsg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedGoShareServer) ShareInit(context.Context, *ShareInitRequest) (*ShareResponse, error) {
+func (UnimplementedGoShareServer) ShareInit(context.Context, *ShareInitRequest) (*ShareInitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ShareInit not implemented")
 }
 func (UnimplementedGoShareServer) Share(GoShare_ShareServer) error {

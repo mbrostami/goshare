@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 )
 
+const MaxConcurrentShare = 0
+
 func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, servers []string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -20,12 +22,10 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 	}
 	defer file.Close()
 
-	//TODO fixed size
-	//fi, err := file.Stat()
-	//if err != nil {
-	//	return err
-	//}
-	//chunkChannel := make(chan *pb.ShareRequest, (fi.Size()%1024)+1)
+	fi, err := file.Stat()
+	if err != nil {
+		return err
+	}
 
 	connections := make([]*grpc.Client, len(servers))
 	for i, server := range servers {
@@ -37,14 +37,16 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 	}
 	log.Debug().Msg("connection to servers was successful!")
 
-	err = connections[0].ShareInit(ctx, uid, filepath.Base(filePath))
-	log.Debug().Msgf("start initializing share: got %+v", err)
-	if err != nil {
-		log.Error().Msgf("couldn't initialize share %+v", err)
-		return err
+	for i, _ := range servers {
+		err = connections[i].ShareInit(ctx, uid, filepath.Base(filePath), fi.Size())
+		log.Debug().Msgf("start initializing share with server %d: got %+v", i, err)
+		if err != nil {
+			log.Error().Msgf("couldn't initialize share %+v", err)
+			return err
+		}
 	}
 
-	chunkChannel := make(chan *pb.ShareRequest)
+	chunkChannel := make(chan *pb.ShareRequest, MaxConcurrentShare)
 	eg, _ := errgroup.WithContext(ctx)
 	for i, _ := range servers {
 		index := i

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -51,7 +52,7 @@ func ListenAndServe(serverService *server.Service, addr string) error {
 	return s.Serve(listener)
 }
 
-func (s *Server) ShareInit(ctx context.Context, req *pb.ShareInitRequest) (*pb.ShareResponse, error) {
+func (s *Server) ShareInit(ctx context.Context, req *pb.ShareInitRequest) (*pb.ShareInitResponse, error) {
 	relayCounter := 0
 Relay:
 	s.mu.RLock()
@@ -63,8 +64,8 @@ Relay:
 		if relayCounter > 10 {
 			log.Error().Msgf("receiver didn't initialize receiving")
 			err := fmt.Errorf("receiver didn't initialize receiving %s", req.Identifier)
-			return &pb.ShareResponse{
-				Message: "retry",
+			return &pb.ShareInitResponse{
+				Message: "failed",
 				Error:   err.Error(),
 			}, nil
 		}
@@ -74,8 +75,8 @@ Relay:
 
 	log.Debug().Msg("sending initialize response to receiving channel")
 
-	recInitChan <- &pb.ReceiveInitResponse{FileName: req.FileName}
-	return &pb.ShareResponse{
+	recInitChan <- &pb.ReceiveInitResponse{FileName: req.FileName, FileSize: req.FileSize}
+	return &pb.ShareInitResponse{
 		Message: "ok",
 	}, nil
 }
@@ -87,17 +88,18 @@ func (s *Server) ReceiveInit(ctx context.Context, req *pb.ReceiveRequest) (*pb.R
 	s.relayInit[req.Identifier] = make(chan *pb.ReceiveInitResponse, 1)
 	s.mu.Unlock()
 
-	var fileName string
+	var res *pb.ReceiveInitResponse
 	for response := range s.relayInit[req.Identifier] {
-		fileName = response.FileName
+		res = response
 		break
 	}
 
 	s.mu.Lock()
 	close(s.relayInit[req.Identifier])
+	s.relay[req.Identifier] = make(chan *pb.ReceiveResponse, req.Semaphore)
 	s.mu.Unlock()
 
-	return &pb.ReceiveInitResponse{FileName: fileName}, nil
+	return res, nil
 }
 
 func (s *Server) Share(stream pb.GoShare_ShareServer) error {
@@ -123,25 +125,16 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 
 		log.Debug().Msgf("received chunk %d", chunk.SequenceNumber)
 
-		relayCounter := 0
-	Relay:
 		s.mu.RLock()
 		recChan, ok := s.relay[chunk.Identifier]
 		s.mu.RUnlock()
 		if !ok {
-			log.Info().Msg("no receiver found! waiting for 5 seconds...")
-			relayCounter++
-			if relayCounter > 10 {
-				log.Error().Msgf("receiver didn't start receiving")
-				err = fmt.Errorf("receiver didn't start receiving %s", chunk.Identifier)
-				stream.Send(&pb.ShareResponse{
-					Message: "retry",
-					Error:   err.Error(),
-				})
-				break
-			}
-			time.Sleep(5 * time.Second)
-			goto Relay
+			log.Info().Msg("no receiver found!...")
+			stream.Send(&pb.ShareResponse{
+				Message: "retry",
+				Error:   err.Error(),
+			})
+			break
 		}
 
 		receiverIdentifier = chunk.Identifier
@@ -173,11 +166,14 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServer) error {
 	log.Debug().Msgf("receiver start receiving on %s", req.Identifier)
 
-	s.mu.Lock()
-	s.relay[req.Identifier] = make(chan *pb.ReceiveResponse)
-	s.mu.Unlock()
+	s.mu.RLock()
+	recChan, ok := s.relay[req.Identifier]
+	s.mu.RUnlock()
+	if !ok {
+		return errors.New("receiver is not initialized")
+	}
 
-	for response := range s.relay[req.Identifier] {
+	for response := range recChan {
 
 		log.Debug().Msgf("sending data to receiver %s , seq: %d", req.Identifier, response.SequenceNumber)
 

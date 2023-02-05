@@ -11,17 +11,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string) error {
+func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string, fileSize int64) error {
 	res, err := c.conn.ShareInit(ctx, &pb.ShareInitRequest{
 		Identifier: uid.String(),
 		FileName:   fileName,
+		FileSize:   fileSize,
 	})
 	if err != nil {
 		return err
 	}
 	if res.Error != "" {
 		if res.Message == "retry" {
-			return c.ShareInit(ctx, uid, fileName)
+			return c.ShareInit(ctx, uid, fileName, fileSize)
 		}
 		return errors.New(res.Error)
 	}
