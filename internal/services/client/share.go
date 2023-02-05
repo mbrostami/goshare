@@ -2,16 +2,14 @@ package client
 
 import (
 	"context"
-	"golang.org/x/sync/errgroup"
-	"io"
-	"os"
-	"path/filepath"
-	"sync"
-
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
+	"io"
+	"os"
+	"path/filepath"
 )
 
 func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, servers []string) error {
@@ -28,39 +26,40 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 	//	return err
 	//}
 	//chunkChannel := make(chan *pb.ShareRequest, (fi.Size()%1024)+1)
-	chunkChannel := make(chan *pb.ShareRequest)
-	defer close(chunkChannel)
 
-	eg, _ := errgroup.WithContext(ctx)
+	connections := make([]*grpc.Client, len(servers))
 	for i, server := range servers {
 		c, err := grpc.NewClient(ctx, server)
 		if err != nil {
 			return err
 		}
-
-		if i == 0 {
-			err := c.ShareInit(ctx, uid, filepath.Base(filePath))
-			log.Debug().Msgf("start initializing share with %s: got %+v", server, err)
-			if err != nil {
-				log.Error().Msgf("couldn't initialize share %+v", err)
-				return err
-			}
-		}
-
-		eg.Go(func() error {
-			if err = c.Share(ctx, uid, chunkChannel); err != nil {
-				log.Error().Err(err).Send()
-				return err
-			}
-			return nil
-		})
+		connections[i] = c
 	}
 	log.Debug().Msg("connection to servers was successful!")
 
+	err = connections[0].ShareInit(ctx, uid, filepath.Base(filePath))
+	log.Debug().Msgf("start initializing share: got %+v", err)
+	if err != nil {
+		log.Error().Msgf("couldn't initialize share %+v", err)
+		return err
+	}
+
+	chunkChannel := make(chan *pb.ShareRequest)
+	eg, _ := errgroup.WithContext(ctx)
+	for i, _ := range servers {
+		index := i
+		eg.Go(func() error {
+			if err = connections[index].Share(ctx, uid, chunkChannel); err != nil {
+				log.Error().Err(err).Send()
+				return err
+			}
+			log.Debug().Msgf("sharing with server %d finished!", index)
+			return nil
+		})
+	}
+
 	buf := make([]byte, 1024)
 	var seq int64
-	wg := &sync.WaitGroup{}
-	semaphore := make(chan struct{}, 4)
 	for {
 		seq++
 		n, err := file.Read(buf)
@@ -92,14 +91,8 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		}
 		r.Data = make([]byte, n)
 		copy(r.Data, buf[:n])
-		wg.Add(1)
-		semaphore <- struct{}{}
-		go func() {
-			chunkChannel <- &r
-			<-semaphore
-			wg.Done()
-		}()
+		chunkChannel <- &r
 	}
-	wg.Wait()
-	return nil
+	close(chunkChannel)
+	return eg.Wait()
 }

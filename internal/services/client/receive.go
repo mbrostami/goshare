@@ -12,47 +12,51 @@ import (
 )
 
 func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) (string, error) {
-	log.Debug().Msg("connection to servers was successful!")
+	log.Trace().Msg("connection to servers was successful!")
 
 	var fileName string
 	resChan := make(chan *pb.ReceiveResponse)
-	wg := &sync.WaitGroup{}
+
 	initwq := &sync.WaitGroup{}
 	initctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	for _, server := range servers {
-		c, err := grpc.NewClient(ctx, server)
+	connections := make([]*grpc.Client, len(servers))
+	var err error
+	for i, server := range servers {
+		connections[i], err = grpc.NewClient(ctx, server)
 		if err != nil {
 			return "", err
 		}
 		initwq.Add(1)
-		go func() {
-			res, e := c.ReceiveInit(initctx, uid)
-			log.Debug().Msgf("receive initialize: %s: %v: %+v", server, res, e)
+		go func(index int, server string) {
+			res, e := connections[index].ReceiveInit(initctx, uid)
+			log.Trace().Msgf("receive initialize: %s: %v: %+v", server, res, e)
 			if res != "" {
 				fileName = res
 				cancel()
 			}
 			initwq.Done()
-		}()
-
-		wg.Add(1)
-		go func() {
-			if err = c.Receive(ctx, uid, resChan); err != nil {
-				log.Error().Err(err).Send()
-			}
-			wg.Done()
-		}()
+		}(i, server)
 	}
-
 	initwq.Wait()
 
 	if fileName == "" {
 		return "", errors.New("couldn't get fileName")
 	}
 
+	wg := &sync.WaitGroup{}
+	for i, _ := range servers {
+		wg.Add(1)
+		go func(index int) {
+			if err = connections[index].Receive(ctx, uid, resChan); err != nil {
+				log.Error().Err(err).Send()
+			}
+			log.Trace().Msgf("wg done! %d", index)
+			wg.Done()
+		}(i)
+	}
+
 	var file *os.File
-	var err error
 	// Create a file to store the received chunks
 	log.Debug().Msgf("creating the file %s", fileName)
 	file, err = os.Create(fileName)
@@ -71,7 +75,6 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	// blocked by chanel
 	for res := range resChan {
 		if res.SequenceNumber < 0 {
-			log.Debug().Msgf("wg done!")
 			continue
 		}
 

@@ -36,7 +36,10 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 		return err
 	}
 
+	semaphore := make(chan struct{}, 5)
 	for chunk := range chunks {
+		semaphore <- struct{}{}
+
 		log.Debug().Msgf("streaming chunk to server: %d : %s", chunk.SequenceNumber)
 		err = stream.Send(chunk)
 		if err != nil {
@@ -45,6 +48,8 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 		}
 
 		response, err := stream.Recv()
+		<-semaphore
+
 		if err == io.EOF {
 			log.Debug().Msg("streaming response finished")
 			return nil

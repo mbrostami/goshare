@@ -31,8 +31,6 @@ func (c *Client) Receive(ctx context.Context, id uuid.UUID, resChan chan *pb.Rec
 	for {
 		res, err := stream.Recv()
 
-		log.Debug().Msgf("received from server %+v, err: %+v", res, err)
-
 		if err == io.EOF {
 			break
 		}
@@ -40,6 +38,8 @@ func (c *Client) Receive(ctx context.Context, id uuid.UUID, resChan chan *pb.Rec
 			log.Error().Err(err).Send()
 			break
 		}
+
+		log.Debug().Msgf("received %d from server", res.SequenceNumber)
 		resChan <- res
 	}
 	return nil
