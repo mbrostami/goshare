@@ -74,18 +74,34 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	}()
 
 	// blocked by chanel
-	for res := range resChan {
-		if res.SequenceNumber < 0 {
-			continue
-		}
-
-		log.Trace().Msgf("writing seq: %d", res.SequenceNumber)
-
-		if _, err = file.Write(res.Data); err != nil {
-			log.Error().Err(err).Send()
-			return "", err
-		}
+	if err = s.writeToFile(file, resChan); err != nil {
+		return "", err
 	}
 
 	return fileName, nil
+}
+
+func (s *Service) writeToFile(file *os.File, resChan chan *pb.ReceiveResponse) error {
+	var lastSeq int64
+	//writeChan := make(chan []byte)
+	//buffer := make([][]byte, 1024)
+	for res := range resChan {
+		//if {
+		//	buffer[res.SequenceNumber%1024] = res.Data
+		//}
+		//buffer[lastSeq] = res.Data
+		if res.SequenceNumber != lastSeq {
+			log.Trace().Msgf("mismatch %d :: %d", res.SequenceNumber, lastSeq)
+		}
+		if res.SequenceNumber < 0 {
+			continue
+		}
+		//log.Trace().Msgf("writing seq: %d", res.SequenceNumber)
+		if _, err := file.Write(res.Data); err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+		lastSeq++
+	}
+	return nil
 }
