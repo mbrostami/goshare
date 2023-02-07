@@ -181,6 +181,7 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 		}
 		if err != nil {
 			log.Error().Err(err).Send()
+			break
 		}
 	}
 

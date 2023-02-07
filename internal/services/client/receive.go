@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
+	"github.com/mbrostami/goshare/pkg/mempage"
 	"github.com/rs/zerolog/log"
 	"os"
 	"sync"
@@ -18,26 +19,23 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	var fileSize int64
 	resChan := make(chan *pb.ReceiveResponse)
 
-	initwq := &sync.WaitGroup{}
-	connections := make([]*grpc.Client, len(servers))
+	connections := make([]*grpc.Client, 0, len(servers))
 	var err error
-	for i, server := range servers {
-		connections[i], err = grpc.NewClient(ctx, server)
+	for _, server := range servers {
+		connection, err := grpc.NewClient(ctx, server)
 		if err != nil {
 			return "", err
 		}
-		initwq.Add(1)
-		go func(index int, server string) {
-			res, fs, err := connections[index].ReceiveInit(ctx, uid)
-			log.Trace().Msgf("receive initialize: %s: %v: %+v", server, res, err)
-			if res != "" {
-				fileName = res
-				fileSize = fs
-			}
-			initwq.Done()
-		}(i, server)
+
+		connections = append(connections, connection)
+
+		res, fs, err := connection.ReceiveInit(ctx, uid)
+		log.Trace().Msgf("receive initialize: %s: %v: %+v", server, res, err)
+		if res != "" {
+			fileName = res
+			fileSize = fs
+		}
 	}
-	initwq.Wait()
 
 	if fileName == "" || fileSize < 1 {
 		return "", errors.New("couldn't get fileName")
@@ -45,27 +43,28 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 
 	log.Info().Msgf("receiving file %s size: %d", fileName, fileSize)
 
-	wg := &sync.WaitGroup{}
-	for i, _ := range servers {
+	wg := sync.WaitGroup{}
+	for i, connection := range connections {
 		wg.Add(1)
-		go func(index int) {
-			if err = connections[index].Receive(ctx, uid, resChan); err != nil {
+		go func(conn *grpc.Client, index int) {
+			if err = conn.Receive(ctx, uid, resChan); err != nil {
 				log.Error().Err(err).Send()
 			}
 			log.Trace().Msgf("wg done! %d", index)
 			wg.Done()
-		}(i)
+		}(connection, i)
 	}
 
 	var file *os.File
 	// Create a file to store the received chunks
 	log.Debug().Msgf("creating the file %s", fileName)
 	file, err = os.Create(fileName)
-	defer file.Close()
 	if err != nil {
 		log.Error().Err(err).Send()
 		return "", err
 	}
+
+	defer file.Close()
 
 	go func() {
 		wg.Wait()
@@ -82,26 +81,25 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 }
 
 func (s *Service) writeToFile(file *os.File, resChan chan *pb.ReceiveResponse) error {
-	var lastSeq int64
-	//writeChan := make(chan []byte)
-	//buffer := make([][]byte, 1024)
-	for res := range resChan {
-		//if {
-		//	buffer[res.SequenceNumber%1024] = res.Data
-		//}
-		//buffer[lastSeq] = res.Data
-		if res.SequenceNumber != lastSeq {
-			log.Trace().Msgf("mismatch %d :: %d", res.SequenceNumber, lastSeq)
+	mem := mempage.New()
+	defer mem.Close()
+
+	go func() {
+		for elem := range mem.ReadChannel() {
+			if _, err := file.Write(elem.Data); err != nil {
+				log.Error().Err(err).Send()
+			}
 		}
+	}()
+	for res := range resChan {
 		if res.SequenceNumber < 0 {
 			continue
 		}
-		//log.Trace().Msgf("writing seq: %d", res.SequenceNumber)
-		if _, err := file.Write(res.Data); err != nil {
-			log.Error().Err(err).Send()
-			return err
-		}
-		lastSeq++
+		mem.Store(&mempage.Element{
+			Sequence: res.SequenceNumber,
+			Data:     res.Data,
+		})
 	}
+
 	return nil
 }
