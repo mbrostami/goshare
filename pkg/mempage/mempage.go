@@ -1,10 +1,9 @@
 package mempage
 
 import (
+	"github.com/rs/zerolog/log"
 	"sort"
 )
-
-const MaxElements = 10
 
 type Element struct {
 	Sequence int64
@@ -12,88 +11,80 @@ type Element struct {
 }
 
 type MemPage struct {
-	maxMemKeys     int32
-	maxChunkLength int64
 	minSequence    int64
-	chanel         chan *Element
-	backoff        []*Element
-	backoffSorted  bool
+	elements       chan *Element
+	buffered       []*Element
+	bufferIsSorted bool
 }
 
 func New() *MemPage {
 	return &MemPage{
 		minSequence: 1,
-		chanel:      make(chan *Element),
+		buffered:    make([]*Element, 0),
+		elements:    make(chan *Element),
 	}
 }
 
-// Store
 func (m *MemPage) Store(e *Element) {
 	if m.minSequence == 0 || m.minSequence > e.Sequence {
 		m.minSequence = e.Sequence
 	}
-	m.chanel <- e
+	m.elements <- e
 	return
 }
 
 func (m *MemPage) Close() {
-	close(m.chanel)
+	close(m.elements)
 }
 
 func (m *MemPage) ReadChannel() chan *Element {
 	elementsBySequenceOrder := make(chan *Element)
 
 	go func() {
-		for element := range m.chanel {
+		for element := range m.elements {
 		CheckElement:
 			if element.Sequence == m.minSequence {
 				elementsBySequenceOrder <- element
 				m.minSequence++
 
-				if len(m.backoff) == 0 {
+				if len(m.buffered) == 0 {
 					continue
 				}
 
-				if !m.backoffSorted {
-					sort.Slice(m.backoff, func(i, j int) bool {
-						return m.backoff[i].Sequence < m.backoff[j].Sequence
+				if !m.bufferIsSorted {
+					sort.Slice(m.buffered, func(i, j int) bool {
+						return m.buffered[i].Sequence < m.buffered[j].Sequence
 					})
 				}
 
-				m.backoffSorted = true
+				m.bufferIsSorted = true
 
-				element = m.backoff[0]
-				m.backoff = m.backoff[1:]
+				element = m.buffered[0]
+				m.buffered = m.buffered[1:]
 				goto CheckElement
 			}
 
-			m.backoff = append(m.backoff, element)
-			m.backoffSorted = false
+			m.buffered = append(m.buffered, element)
+			m.bufferIsSorted = false
 		}
 
-		for _, element := range m.backoff {
-		CheckBackoffElement:
+		// check remaining buffered elements
+		if !m.bufferIsSorted && len(m.buffered) > 0 {
+			sort.Slice(m.buffered, func(i, j int) bool {
+				return m.buffered[i].Sequence < m.buffered[j].Sequence
+			})
+		}
+
+		for _, element := range m.buffered {
 			if element.Sequence == m.minSequence {
 				elementsBySequenceOrder <- element
 				m.minSequence++
-
-				if len(m.backoff) == 0 {
-					continue
-				}
-
-				if !m.backoffSorted {
-					sort.Slice(m.backoff, func(i, j int) bool {
-						return m.backoff[i].Sequence < m.backoff[j].Sequence
-					})
-				}
-
-				m.backoffSorted = true
-
-				element = m.backoff[0]
-				m.backoff = m.backoff[1:]
-				goto CheckBackoffElement
+				continue
 			}
+			log.Error().Msgf("missing sequence %d", element.Sequence)
 		}
+
+		m.buffered = make([]*Element, 0)
 	}()
 
 	return elementsBySequenceOrder
