@@ -80,22 +80,20 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		if err == io.EOF {
 			log.Debug().Msg("sending chunk to channel finished!")
 			// send nil to receiver so receiver knows it's done
-			pbr := pb.ShareRequest{
+			chunkChannel <- &pb.ShareRequest{
 				Identifier:     uid.String(),
 				SequenceNumber: -1,
 			}
-			chunkChannel <- &pbr
 			break
 		}
 		if err != nil {
 			log.Error().Msgf("failed to read file: %v", err)
 
 			// send nil to receiver so receiver knows it's done
-			pbr := pb.ShareRequest{
+			chunkChannel <- &pb.ShareRequest{
 				Identifier:     uid.String(),
 				SequenceNumber: -1,
 			}
-			chunkChannel <- &pbr
 			break
 		}
 		log.Debug().Msgf("sending chunk to channel seq: %d", seq)

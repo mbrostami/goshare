@@ -3,9 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/mbrostami/goshare/internal/services/client"
-
 	"github.com/mbrostami/goshare/api/cmd"
+	"github.com/mbrostami/goshare/internal/services/client"
 	"github.com/mbrostami/goshare/internal/services/server"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

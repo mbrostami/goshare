@@ -55,51 +55,55 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 		}(connection, i)
 	}
 
-	var file *os.File
-	// Create a file to store the received chunks
-	log.Debug().Msgf("creating the file %s", fileName)
-	file, err = os.Create(fileName)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return "", err
-	}
-
-	defer file.Close()
-
 	go func() {
 		wg.Wait()
-		// release the channel when s.Receive is done
-		close(resChan)
+		resChan <- &pb.ReceiveResponse{
+			SequenceNumber: -1,
+		}
 	}()
 
 	// blocked by chanel
-	if err = s.writeToFile(file, resChan); err != nil {
+	if err = s.writeToFile(fileName, resChan); err != nil {
 		return "", err
 	}
 
 	return fileName, nil
 }
 
-func (s *Service) writeToFile(file *os.File, resChan chan *pb.ReceiveResponse) error {
+func (s *Service) writeToFile(fileName string, resChan chan *pb.ReceiveResponse) error {
 	mem := mempage.New()
-	defer mem.Close()
 
+	// Create a file to store the received chunks
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Error().Err(err).Send()
+		return err
+	}
+	defer file.Close()
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
-		for elem := range mem.ReadChannel() {
+		readChan := make(chan *mempage.Element)
+		mem.Read(readChan)
+		for elem := range readChan {
 			if _, err := file.Write(elem.Data); err != nil {
 				log.Error().Err(err).Send()
 			}
 		}
+		wg.Done()
 	}()
 	for res := range resChan {
 		if res.SequenceNumber < 0 {
-			continue
+			log.Trace().Msgf("received %+v", res)
+			break
 		}
 		mem.Store(&mempage.Element{
 			Sequence: res.SequenceNumber,
 			Data:     res.Data,
 		})
 	}
-
+	mem.Close()
+	wg.Wait()
 	return nil
 }

@@ -37,14 +37,12 @@ func (m *MemPage) Close() {
 	close(m.elements)
 }
 
-func (m *MemPage) ReadChannel() chan *Element {
-	elementsBySequenceOrder := make(chan *Element)
-
+func (m *MemPage) Read(out chan *Element) {
 	go func() {
 		for element := range m.elements {
 		CheckElement:
 			if element.Sequence == m.minSequence {
-				elementsBySequenceOrder <- element
+				out <- element
 				m.minSequence++
 
 				if len(m.buffered) == 0 {
@@ -77,15 +75,13 @@ func (m *MemPage) ReadChannel() chan *Element {
 
 		for _, element := range m.buffered {
 			if element.Sequence == m.minSequence {
-				elementsBySequenceOrder <- element
+				out <- element
 				m.minSequence++
 				continue
 			}
 			log.Error().Msgf("missing sequence %d", element.Sequence)
 		}
-
-		m.buffered = make([]*Element, 0)
+		close(out) // todo check if there is any item left
+		m.buffered = nil
 	}()
-
-	return elementsBySequenceOrder
 }
