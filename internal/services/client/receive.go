@@ -3,13 +3,14 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/pkg/mempage"
 	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
+	"github.com/schollz/progressbar/v3"
+	"io"
 	"os"
 	"sync"
 )
@@ -94,20 +95,20 @@ func (s *Service) writeToFile(ctx context.Context, fileName string, fileSize int
 	go func() {
 		readChan := make(chan *mempage.Element)
 		mem.Read(readChan)
+		bar := progressbar.DefaultBytes(
+			fileSize,
+			"Downloading",
+		)
 		for elem := range readChan {
-			if _, err := file.Write(elem.Data); err != nil {
+			a := io.MultiWriter(file, bar)
+			if _, err := a.Write(elem.Data); err != nil {
 				log.Error().Err(err).Send()
 			}
 		}
 		wg.Done()
 	}()
-	var i int64
-	total := fileSize / ChunkSize // TODO set by receiver
 	for res := range resChan {
-		i++
-		fmt.Printf("%d/%d\n", i, total) // TODO show progress bar
 		if res.SequenceNumber < 0 {
-			log.Trace().Msgf("received %+v", res)
 			break
 		}
 		mem.Store(&mempage.Element{

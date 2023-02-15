@@ -7,6 +7,7 @@ import (
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
+	"github.com/schollz/progressbar/v3"
 	"golang.org/x/sync/errgroup"
 	"io"
 	"os"
@@ -81,6 +82,11 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 
 	buf := make([]byte, ChunkSize) // TODO negotiate with receiver to set the chunk size
 	var seq int64
+	bar := progressbar.DefaultBytes(
+		fi.Size(),
+		"Uploading",
+	)
+
 	for {
 		if breakLoop {
 			break
@@ -114,6 +120,7 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		}
 		r.Data = make([]byte, n)
 		copy(r.Data, buf[:n])
+		bar.Write(r.Data)
 		chunkChannel <- &r
 	}
 	close(chunkChannel)
