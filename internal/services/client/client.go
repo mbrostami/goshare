@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"strings"
 	"time"
 
@@ -21,11 +22,14 @@ func NewService() *Service {
 }
 
 func (s *Service) VerifyServers(ctx context.Context, servers []string) error {
+	ctx, span := tracer.NewSpan(ctx, "verify-servers")
+	defer span.End()
+
 	eg := new(errgroup.Group)
 	for _, server := range servers {
 		server := server // https://golang.org/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
-			dialCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+			dialCtx, _ := context.WithTimeout(ctx, 15*time.Second)
 			c, err := grpc.NewClient(dialCtx, server)
 			if err != nil {
 				return err

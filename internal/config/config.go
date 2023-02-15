@@ -8,7 +8,9 @@ import (
 )
 
 type Config struct {
-	DBPath string `envconfig:"DB_PATH" default:"./data/db.db"`
+	Jaeger string `envconfig:"JAEGER" default:"http://localhost:14268/api/traces"`
+	//ChunkSizeMB int64  `envconfig:"CHUNK_SIZE_MB" default:"1"`
+	Tracing bool `envconfig:"TRACING" default:"false"`
 }
 
 var config *Config

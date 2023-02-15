@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"io"
 	"net"
 	"sync"
@@ -17,7 +18,7 @@ import (
 )
 
 type Server struct {
-	mu            sync.RWMutex
+	mu            sync.Mutex
 	relay         map[string]chan *pb.ReceiveResponse
 	relayInit     map[string]chan *pb.ReceiveInitResponse
 	serverService *server.Service
@@ -26,7 +27,7 @@ type Server struct {
 
 func NewServer(serverService *server.Service) *Server {
 	return &Server{
-		mu:            sync.RWMutex{},
+		mu:            sync.Mutex{},
 		relay:         make(map[string]chan *pb.ReceiveResponse),
 		relayInit:     make(map[string]chan *pb.ReceiveInitResponse),
 		serverService: serverService,
@@ -53,11 +54,14 @@ func ListenAndServe(serverService *server.Service, addr string) error {
 }
 
 func (s *Server) ShareInit(ctx context.Context, req *pb.ShareInitRequest) (*pb.ShareInitResponse, error) {
+	ctx, span := tracer.NewSpan(ctx, "server")
+	defer span.End()
+
 	relayCounter := 0
 Relay:
-	s.mu.RLock()
+	s.mu.Lock()
 	recInitChan, ok := s.relayInit[req.Identifier]
-	s.mu.RUnlock()
+	s.mu.Unlock()
 	if !ok {
 		log.Info().Msg("no receiver initialized! waiting for 5 seconds...")
 		relayCounter++
@@ -82,6 +86,9 @@ Relay:
 }
 
 func (s *Server) ReceiveInit(ctx context.Context, req *pb.ReceiveRequest) (*pb.ReceiveInitResponse, error) {
+	ctx, span := tracer.NewSpan(ctx, "server")
+	defer span.End()
+
 	log.Debug().Msgf("receiver initialized receiving on %s", req.Identifier)
 
 	s.mu.Lock()
@@ -103,9 +110,14 @@ func (s *Server) ReceiveInit(ctx context.Context, req *pb.ReceiveRequest) (*pb.R
 }
 
 func (s *Server) Share(stream pb.GoShare_ShareServer) error {
+	_, span := tracer.NewSpan(context.Background(), "server")
+	defer span.End()
+
 	log.Debug().Msg("received new share stream")
 
 	var receiverIdentifier string
+	var recChan chan *pb.ReceiveResponse
+	var ok bool
 	for {
 		chunk, err := stream.Recv()
 
@@ -123,21 +135,24 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 
 		log.Debug().Msgf("received chunk %d", chunk.SequenceNumber)
 
-		s.mu.RLock()
-		recChan, ok := s.relay[chunk.Identifier]
-		s.mu.RUnlock()
-		if !ok {
-			log.Info().Msg("no receiver found!...")
-			stream.Send(&pb.ShareResponse{
-				Message: "retry",
-				Error:   err.Error(),
-			})
-			break
+		// in first chunk make sure receiver channel exist
+		if recChan == nil {
+			receiverIdentifier = chunk.Identifier
+			log.Info().Msg("finding receiver channel...")
+
+			s.mu.Lock()
+			recChan, ok = s.relay[chunk.Identifier]
+			s.mu.Unlock()
+			if !ok {
+				log.Info().Msg("no receiver found!...")
+				stream.Send(&pb.ShareResponse{
+					Message: "failed",
+					Error:   err.Error(),
+				})
+				break
+			}
 		}
 
-		receiverIdentifier = chunk.Identifier
-
-		// TODO send to the receiver channel
 		recChan <- &pb.ReceiveResponse{
 			SequenceNumber: chunk.SequenceNumber,
 			Data:           chunk.Data,
@@ -152,7 +167,7 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 	}
 	// close receiver channel
 	s.mu.Lock()
-	if recChan, ok := s.relay[receiverIdentifier]; ok {
+	if recChan, ok = s.relay[receiverIdentifier]; ok {
 		close(recChan)
 		delete(s.relay, receiverIdentifier)
 	}
@@ -162,16 +177,22 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 }
 
 func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServer) error {
+	_, span := tracer.NewSpan(context.Background(), "server")
+	defer span.End()
+
 	log.Debug().Msgf("receiver start receiving on %s", req.Identifier)
 
-	s.mu.RLock()
+	s.mu.Lock()
 	recChan, ok := s.relay[req.Identifier]
-	s.mu.RUnlock()
+	s.mu.Unlock()
 	if !ok {
 		return errors.New("receiver is not initialized")
 	}
 
 	for response := range recChan {
+		if response.SequenceNumber < 0 {
+			break
+		}
 
 		log.Debug().Msgf("sending data to receiver %s , seq: %d", req.Identifier, response.SequenceNumber)
 
@@ -184,11 +205,20 @@ func (s *Server) Receive(req *pb.ReceiveRequest, receiver pb.GoShare_ReceiveServ
 			break
 		}
 	}
-
+	// close receiver channel
+	//s.mu.Lock()
+	//if recChan, ok = s.relay[req.Identifier]; ok {
+	//	close(recChan)
+	//	delete(s.relay, req.Identifier)
+	//}
+	//s.mu.Unlock()
 	return nil
 }
 
 func (s *Server) Ping(ctx context.Context, _ *pb.PingMsg) (*pb.PongMsg, error) {
+	ctx, span := tracer.NewSpan(ctx, "server")
+	defer span.End()
+
 	log.Debug().Msg("Pong!")
 	return &pb.PongMsg{Pong: true}, nil
 }

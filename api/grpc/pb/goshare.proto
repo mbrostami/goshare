@@ -10,8 +10,9 @@ message ShareResponse {
 }
 
 message ShareInitResponse {
-  string Message = 1;
-  string Error = 2;
+  int64 ChunkSize = 1;
+  string Message = 2;
+  string Error = 3;
 }
 
 message ShareInitRequest {

@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"io"
@@ -12,9 +13,18 @@ import (
 	"path/filepath"
 )
 
+const (
+	KB = 1 << (10 * (iota + 1))
+	MB
+	GB
+)
 const MaxConcurrentShare = 0
+const ChunkSize = 1 * MB
 
 func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, servers []string) error {
+	ctx, span := tracer.NewSpan(ctx, "sender-service")
+	defer span.End()
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Error().Msgf("failed to open file: %v", err)
@@ -69,13 +79,14 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		}
 	}()
 
-	buf := make([]byte, 1024)
+	buf := make([]byte, ChunkSize) // TODO negotiate with receiver to set the chunk size
 	var seq int64
 	for {
 		if breakLoop {
 			break
 		}
 		seq++
+
 		n, err := file.Read(buf)
 		if err == io.EOF {
 			log.Debug().Msg("sending chunk to channel finished!")

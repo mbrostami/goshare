@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"github.com/jessevdk/go-flags"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/internal/services/server"
@@ -23,6 +24,6 @@ func newServerHandler(serverService *server.Service) *serverHandler {
 	}
 }
 
-func (h *serverHandler) Run(command *flags.Command) error {
+func (h *serverHandler) Run(ctx context.Context, command *flags.Command) error {
 	return grpc.ListenAndServe(h.serverService, h.opts.IP+":"+h.opts.Port)
 }

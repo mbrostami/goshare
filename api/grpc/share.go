@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"io"
 
 	"github.com/google/uuid"
@@ -11,9 +12,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const MaxConcurrent = 5
+const MaxConcurrent = 20
 
 func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string, fileSize int64) error {
+	ctx, span := tracer.NewSpan(ctx, "sender")
+	defer span.End()
+
 	res, err := c.conn.ShareInit(ctx, &pb.ShareInitRequest{
 		Identifier: uid.String(),
 		FileName:   fileName,
@@ -33,17 +37,16 @@ func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string, 
 }
 
 func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.ShareRequest) error {
+	ctx, span := tracer.NewSpan(ctx, "sender")
+	defer span.End()
+
 	stream, err := c.conn.Share(ctx)
 	if err != nil {
 		log.Error().Msgf("failed to stream file: %v", err)
 		return err
 	}
 
-	semaphore := make(chan struct{}, MaxConcurrent)
 	for chunk := range chunks {
-		semaphore <- struct{}{}
-
-		// TODO goroutine
 		log.Debug().Msgf("streaming chunk to server: %d", chunk.SequenceNumber)
 		err = stream.Send(chunk)
 		if err != nil {
@@ -52,7 +55,6 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 		}
 
 		response, err := stream.Recv()
-		<-semaphore
 
 		if err == io.EOF {
 			log.Debug().Msg("streaming response finished")
@@ -65,11 +67,7 @@ func (c *Client) Share(ctx context.Context, uid uuid.UUID, chunks chan *pb.Share
 
 		log.Debug().Msgf("streaming response received %+v", response)
 		if response.Error != "" {
-			if response.Message == "retry" {
-				log.Debug().Msgf("resending chunk no: %d", chunk.SequenceNumber)
-				chunks <- chunk
-				continue
-			}
+			// TODO retry
 			log.Error().Msgf("received response %s", response.Error)
 			return fmt.Errorf("received response %s", response.Error)
 		}

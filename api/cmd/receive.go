@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/mbrostami/goshare/pkg/tracer"
 
 	"github.com/rs/zerolog/log"
 
@@ -26,8 +27,10 @@ func newReceiveHandler(clientService *client.Service) *receiveHandler {
 	}
 }
 
-func (h *receiveHandler) Run(command *flags.Command) error {
-	ctx := context.TODO()
+func (h *receiveHandler) Run(ctx context.Context, command *flags.Command) error {
+	ctx, span := tracer.NewSpan(ctx, "receive-run")
+	defer span.End()
+
 	servers, id, err := h.clientService.ParseKey(h.opts.Key)
 	if err != nil {
 		return err

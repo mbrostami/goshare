@@ -30,8 +30,7 @@ func newShareHandler(clientService *client.Service) *shareHandler {
 	}
 }
 
-func (h *shareHandler) Run(command *flags.Command) error {
-	ctx := context.TODO()
+func (h *shareHandler) Run(ctx context.Context, command *flags.Command) error {
 	log.Debug().Msg("checking servers...")
 	if err := h.clientService.VerifyServers(ctx, h.opts.Servers); err != nil {
 		return err

@@ -3,16 +3,21 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/pkg/mempage"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
 	"os"
 	"sync"
 )
 
 func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) (string, error) {
+	ctx, span := tracer.NewSpan(ctx, "receiver-service")
+	defer span.End()
+
 	log.Trace().Msg("connection to servers was successful!")
 
 	var fileName string
@@ -63,14 +68,17 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	}()
 
 	// blocked by chanel
-	if err = s.writeToFile(fileName, resChan); err != nil {
+	if err = s.writeToFile(ctx, fileName, fileSize, resChan); err != nil {
 		return "", err
 	}
 
 	return fileName, nil
 }
 
-func (s *Service) writeToFile(fileName string, resChan chan *pb.ReceiveResponse) error {
+func (s *Service) writeToFile(ctx context.Context, fileName string, fileSize int64, resChan chan *pb.ReceiveResponse) error {
+	ctx, span := tracer.NewSpan(ctx, "receiver-service")
+	defer span.End()
+
 	mem := mempage.New()
 
 	// Create a file to store the received chunks
@@ -93,7 +101,11 @@ func (s *Service) writeToFile(fileName string, resChan chan *pb.ReceiveResponse)
 		}
 		wg.Done()
 	}()
+	var i int64
+	total := fileSize / ChunkSize // TODO set by receiver
 	for res := range resChan {
+		i++
+		fmt.Printf("%d/%d\n", i, total) // TODO show progress bar
 		if res.SequenceNumber < 0 {
 			log.Trace().Msgf("received %+v", res)
 			break

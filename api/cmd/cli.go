@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"errors"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"os"
 	"sync"
 
@@ -14,7 +16,7 @@ import (
 )
 
 type Handler interface {
-	Run(command *flags.Command) error
+	Run(ctx context.Context, command *flags.Command) error
 }
 
 type Cli struct {
@@ -41,7 +43,10 @@ func NewCli(serverService *server.Service, clientService *client.Service) *Cli {
 	return &cli
 }
 
-func (c *Cli) Run() error {
+func (c *Cli) Run(ctx context.Context) error {
+	ctx, span := tracer.NewSpan(ctx, "cli")
+	defer span.End()
+
 	parser := flags.NewParser(c.opts, flags.Default)
 	_, err := parser.Parse()
 	if err != nil {
@@ -77,5 +82,5 @@ func (c *Cli) Run() error {
 		zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	}
 
-	return command.Run(parser.Active)
+	return command.Run(ctx, parser.Active)
 }

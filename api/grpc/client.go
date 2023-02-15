@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/mbrostami/goshare/api/grpc/pb"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer"
@@ -65,6 +66,9 @@ func NewClientLoadBalancer(servers []string) (*Client, error) {
 }
 
 func (c *Client) Ping(ctx context.Context) error {
+	ctx, span := tracer.NewSpan(ctx, "client-ping")
+	defer span.End()
+
 	_, err := c.conn.Ping(ctx, &pb.PingMsg{Ping: true})
 	return err
 }
