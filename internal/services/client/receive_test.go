@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -12,6 +13,7 @@ import (
 )
 
 func TestWriteToFile(t *testing.T) {
+	ctx := context.Background()
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	s := &Service{}
 	resChan := make(chan *pb.ReceiveResponse)
@@ -36,7 +38,7 @@ func TestWriteToFile(t *testing.T) {
 		}
 	}()
 
-	err := s.writeToFile("/tmp/bm-write-to-file", resChan)
+	err := s.writeToFile(ctx, "/tmp/bm-write-to-file", 1, resChan)
 	if err != nil {
 		t.Errorf("couldn't write to file %+v", err)
 	}
@@ -59,6 +61,7 @@ func TestWriteToFile(t *testing.T) {
 
 func BenchmarkWriteToFile(b *testing.B) {
 	//b.Run("benchmark writetofile", func(b *testing.B) {
+	ctx := context.Background()
 	s := &Service{}
 	resChan := make(chan *pb.ReceiveResponse)
 
@@ -84,7 +87,7 @@ func BenchmarkWriteToFile(b *testing.B) {
 		}
 	}()
 
-	err := s.writeToFile("/tmp/bm-write-to-file", resChan)
+	err := s.writeToFile(ctx, "/tmp/bm-write-to-file", 1, resChan)
 	if err != nil {
 		b.Errorf("couldn't write to file %+v", err)
 	}
