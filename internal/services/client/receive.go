@@ -94,14 +94,15 @@ func (s *Service) writeToFile(ctx context.Context, fileName string, fileSize int
 	wg.Add(1)
 	go func() {
 		readChan := make(chan *mempage.Element)
-		mem.Read(readChan)
+		go mem.Write(readChan)
 		bar := progressbar.DefaultBytes(
 			fileSize,
 			"Downloading",
 		)
+
+		mr := io.MultiWriter(file, bar)
 		for elem := range readChan {
-			a := io.MultiWriter(file, bar)
-			if _, err := a.Write(elem.Data); err != nil {
+			if _, err = mr.Write(elem.Data); err != nil {
 				log.Error().Err(err).Send()
 			}
 		}

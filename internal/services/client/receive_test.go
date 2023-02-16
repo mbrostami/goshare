@@ -60,7 +60,6 @@ func TestWriteToFile(t *testing.T) {
 }
 
 func BenchmarkWriteToFile(b *testing.B) {
-	//b.Run("benchmark writetofile", func(b *testing.B) {
 	ctx := context.Background()
 	s := &Service{}
 	resChan := make(chan *pb.ReceiveResponse)
@@ -91,5 +90,4 @@ func BenchmarkWriteToFile(b *testing.B) {
 	if err != nil {
 		b.Errorf("couldn't write to file %+v", err)
 	}
-	//})
 }
