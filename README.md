@@ -2,8 +2,6 @@
 GoShare is a terminal tool for sharing files through one or multiple servers.  
 Servers are acting as a relay to stream data from sender to receiver. 
 
-![screenshot](https://github.com/mbrostami/goshare/blob/master/screenshot.png?raw=true)
-
 ## Installation
 Make sure you have Go installed on your system.  
 Clone the repository  
