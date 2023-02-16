@@ -81,7 +81,7 @@ func (m *MemPage) Read(out chan *Element) {
 			}
 			log.Error().Msgf("missing sequence %d", element.Sequence)
 		}
-		close(out) // todo check if there is any item left
+		close(out) // TODO check if there is any item left
 		m.buffered = nil
 	}()
 }

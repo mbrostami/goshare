@@ -1,6 +1,6 @@
 # GoShare
-GoShare is a terminal tool for sharing files through one or multiple server.  
-Server is acting as a relay to stream data from sender to receiver. 
+GoShare is a terminal tool for sharing files through one or multiple servers.  
+Servers are acting as a relay to stream data from sender to receiver. 
 
 ## Installation
 Make sure you have Go installed on your system.  
@@ -22,7 +22,7 @@ Run the binary
 ### Sharing files
 To share a file, use the following command:
 ```
-goshare share -f <path/to/file> -s server1:2022 -s server2:2030 -vvv 
+goshare share -f <path/to/file> -s server1:2022 -s server2:2030 
 ```
 The above command gives you a key code. Receiver needs this code to download the file. 
 
@@ -30,7 +30,7 @@ The above command gives you a key code. Receiver needs this code to download the
 To check if there are any files available for you to receive, use the following command:
 
 ```
-goshare receive -k KEY_CODE_FROM_SENDER -vvv
+goshare receive -k KEY_CODE_FROM_SENDER
 ```
 
 ### Server Configuration
@@ -39,6 +39,7 @@ To configure the server, you can provide the following options:
 ```
 goshare server
 --port : listening port 
+--ip   : listening ip
 ```
 
 ## License

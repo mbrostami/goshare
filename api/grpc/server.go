@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mbrostami/goshare/pkg/tracer"
+	"github.com/schollz/progressbar/v3"
 	"io"
 	"net"
 	"sync"
@@ -118,6 +119,10 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 	var receiverIdentifier string
 	var recChan chan *pb.ReceiveResponse
 	var ok bool
+	bar := progressbar.DefaultBytes(
+		-1,
+		"Streaming",
+	)
 	for {
 		chunk, err := stream.Recv()
 
@@ -157,6 +162,7 @@ func (s *Server) Share(stream pb.GoShare_ShareServer) error {
 			SequenceNumber: chunk.SequenceNumber,
 			Data:           chunk.Data,
 		}
+		bar.Write(chunk.Data)
 		err = stream.Send(&pb.ShareResponse{
 			Message: "ok",
 		})
