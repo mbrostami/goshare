@@ -7,4 +7,5 @@ type Options struct {
 	Server  *serverOptions  `command:"server"`
 	Share   *shareOptions   `command:"share"`
 	Receive *receiveOptions `command:"receive"`
+	Cert    *certOptions    `command:"cert"`
 }

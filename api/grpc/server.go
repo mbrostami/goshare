@@ -35,11 +35,36 @@ func NewServer(serverService *server.Service) *Server {
 	}
 }
 
+func InsecureInterceptorFunc(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	// check if the client is authorized
+	// ...
+
+	// call the next handler in the chain
+	return handler(ctx, req)
+}
+
+func InsecureStreamInterceptorFunc(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	// check if the client is authorized
+	// ...
+
+	// call the next handler in the chain
+	err := handler(srv, stream)
+
+	// log the outgoing response
+	// ...
+
+	return err
+}
+
 func ListenAndServe(serverService *server.Service, addr string) error {
 	sv := NewServer(serverService)
-	s := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
-		MaxConnectionIdle: 1 * time.Minute,
-	}))
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(InsecureInterceptorFunc),
+		grpc.StreamInterceptor(InsecureStreamInterceptorFunc),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle: 1 * time.Minute,
+		}),
+	)
 	pb.RegisterGoShareServer(s, sv)
 
 	listener, err := net.Listen("tcp", addr)

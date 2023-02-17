@@ -40,6 +40,10 @@ func NewCli(serverService *server.Service, clientService *client.Service) *Cli {
 	cli.opts.Receive = rcvHandler.opts
 	cli.handlers.Store("receive", rcvHandler)
 
+	crtHandler := newCertHandler()
+	cli.opts.Cert = crtHandler.opts
+	cli.handlers.Store("cert", crtHandler)
+
 	return &cli
 }
 
