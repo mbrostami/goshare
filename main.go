@@ -26,7 +26,7 @@ func main() {
 	}
 
 	cli := cmd.NewCli(
-		server.NewService(),
+		server.NewService(cfg),
 		client.NewService(),
 	)
 	if err := cli.Run(ctx); err != nil {

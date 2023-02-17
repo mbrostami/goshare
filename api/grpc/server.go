@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/mbrostami/goshare/pkg/tracer"
-	"github.com/schollz/progressbar/v3"
 	"io"
 	"net"
 	"sync"
@@ -13,8 +11,11 @@ import (
 
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/internal/services/server"
+	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
+	"github.com/schollz/progressbar/v3"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -26,7 +27,7 @@ type Server struct {
 	pb.UnimplementedGoShareServer
 }
 
-func NewServer(serverService *server.Service) *Server {
+func newServer(serverService *server.Service) *Server {
 	return &Server{
 		mu:            sync.Mutex{},
 		relay:         make(map[string]chan *pb.ReceiveResponse),
@@ -35,32 +36,18 @@ func NewServer(serverService *server.Service) *Server {
 	}
 }
 
-func InsecureInterceptorFunc(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	// check if the client is authorized
-	// ...
+func ListenAndServe(serverService *server.Service, certPath, addr string) error {
+	tlsCredentials, err := credentials.NewServerTLSFromFile(
+		fmt.Sprintf("%s/cert.pem", certPath),
+		fmt.Sprintf("%s/key.pem", certPath),
+	)
+	if err != nil {
+		return err
+	}
 
-	// call the next handler in the chain
-	return handler(ctx, req)
-}
-
-func InsecureStreamInterceptorFunc(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	// check if the client is authorized
-	// ...
-
-	// call the next handler in the chain
-	err := handler(srv, stream)
-
-	// log the outgoing response
-	// ...
-
-	return err
-}
-
-func ListenAndServe(serverService *server.Service, addr string) error {
-	sv := NewServer(serverService)
+	sv := newServer(serverService)
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(InsecureInterceptorFunc),
-		grpc.StreamInterceptor(InsecureStreamInterceptorFunc),
+		grpc.Creds(tlsCredentials),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: 1 * time.Minute,
 		}),

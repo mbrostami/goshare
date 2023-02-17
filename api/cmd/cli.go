@@ -52,8 +52,10 @@ func (c *Cli) Run(ctx context.Context) error {
 	defer span.End()
 
 	parser := flags.NewParser(c.opts, flags.Default)
-	_, err := parser.Parse()
-	if err != nil {
+	if _, err := parser.Parse(); err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
+			return nil
+		}
 		parser.WriteHelp(os.Stdout)
 		return err
 	}

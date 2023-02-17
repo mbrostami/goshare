@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/pkg/tracer"
@@ -9,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/roundrobin"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/resolver/manual"
 	"strings"
@@ -20,10 +21,13 @@ type Client struct {
 }
 
 func NewClient(ctx context.Context, addr string) (*Client, error) {
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
 	conn, err := grpc.DialContext(
 		ctx,
 		addr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(credentials.NewTLS(config)),
 	)
 	if err != nil {
 		return nil, err

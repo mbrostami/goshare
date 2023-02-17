@@ -7,7 +7,7 @@ import (
 )
 
 type certOptions struct {
-	Host string `long:"host" required:"true" description:"Comma-separated hostnames and IPs to generate a certificate for"`
+	Host string `short:"h" long:"host" required:"true" description:"Comma-separated hostnames and IPs to generate a certificate for"`
 	Dst  string `long:"dst" default:"." description:"Directory path to store and override key.pem and cert.pem files"`
 }
 
