@@ -2,6 +2,7 @@ package sharing
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
@@ -28,9 +29,9 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Error().Msgf("failed to open file: %v", err)
-		return err
+		return fmt.Errorf("failed to open file: %v", err)
 	}
+
 	defer file.Close()
 
 	fi, err := file.Stat()
@@ -50,10 +51,8 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 
 	for i, _ := range servers {
 		err = connections[i].ShareInit(ctx, uid, filepath.Base(filePath), fi.Size())
-		log.Debug().Msgf("start initializing share with server %d: got %+v", i, err)
 		if err != nil {
-			log.Error().Msgf("couldn't initialize share %+v", err)
-			return err
+			return fmt.Errorf("couldn't initialize share %+v", err)
 		}
 	}
 
@@ -65,7 +64,6 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 		index := i
 		eg.Go(func() error {
 			if err = connections[index].Share(ctx, uid, chunkChannel); err != nil {
-				log.Error().Err(err).Send()
 				return err
 			}
 			log.Debug().Msgf("sharing with server %d finished!", index)

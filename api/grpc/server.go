@@ -71,24 +71,14 @@ func (s *Server) ShareInit(ctx context.Context, req *pb.ShareInitRequest) (*pb.S
 	ctx, span := tracer.NewSpan(ctx, "server")
 	defer span.End()
 
-	relayCounter := 0
-Relay:
-	s.mu.Lock()
-	recInitChan, ok := s.relayInit[req.Identifier]
-	s.mu.Unlock()
-	if !ok {
-		log.Info().Msg("no receiver initialized! waiting for 5 seconds...")
-		relayCounter++
-		if relayCounter > 10 {
-			log.Error().Msgf("receiver didn't initialize receiving")
-			err := fmt.Errorf("receiver didn't initialize receiving %s", req.Identifier)
-			return &pb.ShareInitResponse{
-				Message: "failed",
-				Error:   err.Error(),
-			}, nil
-		}
-		time.Sleep(5 * time.Second)
-		goto Relay
+	recInitChan, err := s.waitingForReceiver(ctx, req.Identifier)
+	if err != nil {
+		log.Error().Msgf("%v", err)
+
+		return &pb.ShareInitResponse{
+			Message: "failed",
+			Error:   err.Error(),
+		}, nil
 	}
 
 	log.Debug().Msg("sending initialize response to receiving channel")
@@ -97,6 +87,38 @@ Relay:
 	return &pb.ShareInitResponse{
 		Message: "ok",
 	}, nil
+}
+
+func (s *Server) waitingForReceiver(ctx context.Context, identifier string) (chan *pb.ReceiveInitResponse, error) {
+	startTime := time.Now()
+	waitFor := 10 * time.Second
+	bar := progressbar.NewOptions(
+		-1,
+		progressbar.OptionShowBytes(false),
+		progressbar.OptionSetDescription("waiting for receiver..."),
+		progressbar.OptionSpinnerType(14),
+	)
+	defer bar.Clear()
+
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		s.mu.Lock()
+		recInitChan, ok := s.relayInit[identifier]
+		s.mu.Unlock()
+		if ok {
+			return recInitChan, nil
+		}
+
+		if startTime.Add(waitFor).Before(time.Now()) {
+			return nil, fmt.Errorf("there is no receiver for %s", identifier)
+		}
+		bar.Add(1)
+		time.Sleep(100 * time.Millisecond)
+		continue
+	}
 }
 
 func (s *Server) ReceiveInit(ctx context.Context, req *pb.ReceiveRequest) (*pb.ReceiveInitResponse, error) {

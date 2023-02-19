@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mbrostami/goshare/pkg/tracer"
+	"github.com/schollz/progressbar/v3"
 	"io"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc/pb"
@@ -14,22 +17,58 @@ import (
 
 const MaxConcurrent = 20
 
+func (c *Client) waitingForReceiver(ctx context.Context) {
+	startTime := time.Now()
+	waitFor := 120 * time.Second
+	bar := progressbar.NewOptions(
+		-1,
+		progressbar.OptionShowBytes(false),
+		progressbar.OptionSetDescription("waiting for receiver..."),
+		progressbar.OptionSpinnerType(14),
+	)
+	defer bar.Clear()
+
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+
+		if startTime.Add(waitFor).Before(time.Now()) {
+			return
+		}
+
+		bar.Add(1)
+		time.Sleep(100 * time.Millisecond)
+		continue
+	}
+}
+
 func (c *Client) ShareInit(ctx context.Context, uid uuid.UUID, fileName string, fileSize int64) error {
 	ctx, span := tracer.NewSpan(ctx, "sender")
 	defer span.End()
+
+	tctx, cancel := context.WithCancel(ctx)
+	wg := sync.WaitGroup{}
+	go func() {
+		wg.Add(1)
+		c.waitingForReceiver(tctx)
+		wg.Done()
+	}()
 
 	res, err := c.conn.ShareInit(ctx, &pb.ShareInitRequest{
 		Identifier: uid.String(),
 		FileName:   fileName,
 		FileSize:   fileSize,
 	})
+
+	cancel()
+	wg.Wait()
+
 	if err != nil {
 		return err
 	}
+
 	if res.Error != "" {
-		if res.Message == "retry" {
-			return c.ShareInit(ctx, uid, fileName, fileSize)
-		}
 		return errors.New(res.Error)
 	}
 
