@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/jessevdk/go-flags"
-	"github.com/mbrostami/goshare/pkg/cert"
+	"github.com/mbrostami/gcert"
 )
 
 type certOptions struct {
@@ -22,7 +22,7 @@ func newCertHandler() *certHandler {
 }
 
 func (h *certHandler) Run(ctx context.Context, command *flags.Command) error {
-	return cert.Generate(
+	return gcert.Generate(
 		h.opts.Host,
 		h.opts.Dst,
 	)
