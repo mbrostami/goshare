@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mbrostami/goshare/internal/services/client"
+	"github.com/mbrostami/goshare/internal/services/sharing"
 )
 
 type shareOptions struct {
@@ -17,27 +17,27 @@ type shareOptions struct {
 }
 
 type shareHandler struct {
-	opts          *shareOptions
-	clientService *client.Service
+	opts           *shareOptions
+	sharingService *sharing.Service
 }
 
-func newShareHandler(clientService *client.Service) *shareHandler {
+func newShareHandler(sharingService *sharing.Service) *shareHandler {
 	return &shareHandler{
-		opts:          &shareOptions{},
-		clientService: clientService,
+		opts:           &shareOptions{},
+		sharingService: sharingService,
 	}
 }
 
 func (h *shareHandler) Run(ctx context.Context, command *flags.Command) error {
 	log.Debug().Msg("checking servers...")
-	if err := h.clientService.VerifyServers(ctx, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
+	if err := h.sharingService.VerifyServers(ctx, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
 		return err
 	}
 
 	log.Debug().Msg("generating the key...")
-	key, uid := h.clientService.GenerateKey(h.opts.Servers)
+	key, uid := h.sharingService.GenerateKey(h.opts.Servers)
 	fmt.Printf("share this key -> %s\n", key)
 
 	log.Debug().Msg("starting the share...")
-	return h.clientService.Share(ctx, h.opts.File, uid, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify)
+	return h.sharingService.Share(ctx, h.opts.File, uid, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify)
 }

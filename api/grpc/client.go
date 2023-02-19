@@ -24,9 +24,8 @@ type Client struct {
 func NewClient(ctx context.Context, addr string, withTLS, skipVerify bool) (*Client, error) {
 	var dialOptions []grpc.DialOption
 	if withTLS {
-		var config tls.Config
-		if skipVerify {
-			config.InsecureSkipVerify = true
+		config := tls.Config{
+			InsecureSkipVerify: skipVerify,
 		}
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(&config)))
 	} else {
@@ -80,7 +79,7 @@ func NewClientLoadBalancer(servers []string) (*Client, error) {
 }
 
 func (c *Client) Ping(ctx context.Context) error {
-	ctx, span := tracer.NewSpan(ctx, "client-ping")
+	ctx, span := tracer.NewSpan(ctx, "sharing-ping")
 	defer span.End()
 
 	_, err := c.conn.Ping(ctx, &pb.PingMsg{Ping: true})

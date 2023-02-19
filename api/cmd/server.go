@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/jessevdk/go-flags"
 	"github.com/mbrostami/goshare/api/grpc"
-	"github.com/mbrostami/goshare/internal/services/server"
 )
 
 type serverOptions struct {
@@ -15,17 +14,15 @@ type serverOptions struct {
 }
 
 type serverHandler struct {
-	opts          *serverOptions
-	serverService *server.Service
+	opts *serverOptions
 }
 
-func newServerHandler(serverService *server.Service) *serverHandler {
+func newServerHandler() *serverHandler {
 	return &serverHandler{
-		opts:          &serverOptions{},
-		serverService: serverService,
+		opts: &serverOptions{},
 	}
 }
 
 func (h *serverHandler) Run(ctx context.Context, command *flags.Command) error {
-	return grpc.ListenAndServe(h.serverService, h.opts.WithTLS, h.opts.CertPath, h.opts.IP+":"+h.opts.Port)
+	return grpc.ListenAndServe(h.opts.WithTLS, h.opts.CertPath, h.opts.IP+":"+h.opts.Port)
 }

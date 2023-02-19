@@ -7,8 +7,7 @@ import (
 	"os"
 
 	"github.com/mbrostami/goshare/api/cmd"
-	"github.com/mbrostami/goshare/internal/services/client"
-	"github.com/mbrostami/goshare/internal/services/server"
+	"github.com/mbrostami/goshare/internal/services/sharing"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -26,8 +25,7 @@ func main() {
 	}
 
 	cli := cmd.NewCli(
-		server.NewService(cfg),
-		client.NewService(),
+		sharing.NewService(),
 	)
 	if err := cli.Run(ctx); err != nil {
 		log.Error().Err(err).Send()

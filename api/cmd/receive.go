@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mbrostami/goshare/internal/services/client"
+	"github.com/mbrostami/goshare/internal/services/sharing"
 )
 
 type receiveOptions struct {
@@ -18,14 +18,14 @@ type receiveOptions struct {
 }
 
 type receiveHandler struct {
-	opts          *receiveOptions
-	clientService *client.Service
+	opts           *receiveOptions
+	sharingService *sharing.Service
 }
 
-func newReceiveHandler(clientService *client.Service) *receiveHandler {
+func newReceiveHandler(sharingService *sharing.Service) *receiveHandler {
 	return &receiveHandler{
-		opts:          &receiveOptions{},
-		clientService: clientService,
+		opts:           &receiveOptions{},
+		sharingService: sharingService,
 	}
 }
 
@@ -33,17 +33,17 @@ func (h *receiveHandler) Run(ctx context.Context, command *flags.Command) error 
 	ctx, span := tracer.NewSpan(ctx, "receive-run")
 	defer span.End()
 
-	servers, id, err := h.clientService.ParseKey(h.opts.Key)
+	servers, id, err := h.sharingService.ParseKey(h.opts.Key)
 	if err != nil {
 		return err
 	}
 
 	log.Debug().Msg("checking servers...")
-	if err := h.clientService.VerifyServers(ctx, servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
+	if err := h.sharingService.VerifyServers(ctx, servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
 		return err
 	}
 
-	fileName, err := h.clientService.Receive(ctx, id, servers, h.opts.WithTLS, h.opts.SkipVerify)
+	fileName, err := h.sharingService.Receive(ctx, id, servers, h.opts.WithTLS, h.opts.SkipVerify)
 	if err != nil {
 		return err
 	}

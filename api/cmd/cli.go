@@ -7,9 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/mbrostami/goshare/internal/services/client"
-
-	"github.com/mbrostami/goshare/internal/services/server"
+	"github.com/mbrostami/goshare/internal/services/sharing"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/rs/zerolog"
@@ -24,19 +22,19 @@ type Cli struct {
 	opts     *Options
 }
 
-func NewCli(serverService *server.Service, clientService *client.Service) *Cli {
+func NewCli(sharingService *sharing.Service) *Cli {
 	var cli Cli
 	cli.opts = &Options{}
 
-	srvHandler := newServerHandler(serverService)
+	srvHandler := newServerHandler()
 	cli.opts.Server = srvHandler.opts
 	cli.handlers.Store("server", srvHandler)
 
-	shrHandler := newShareHandler(clientService)
+	shrHandler := newShareHandler(sharingService)
 	cli.opts.Share = shrHandler.opts
 	cli.handlers.Store("share", shrHandler)
 
-	rcvHandler := newReceiveHandler(clientService)
+	rcvHandler := newReceiveHandler(sharingService)
 	cli.opts.Receive = rcvHandler.opts
 	cli.handlers.Store("receive", rcvHandler)
 

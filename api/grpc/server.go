@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mbrostami/goshare/api/grpc/pb"
-	"github.com/mbrostami/goshare/internal/services/server"
 	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
 	"github.com/schollz/progressbar/v3"
@@ -20,23 +19,20 @@ import (
 )
 
 type Server struct {
-	mu            sync.Mutex
-	relay         map[string]chan *pb.ReceiveResponse
-	relayInit     map[string]chan *pb.ReceiveInitResponse
-	serverService *server.Service
+	mu        sync.Mutex
+	relay     map[string]chan *pb.ReceiveResponse
+	relayInit map[string]chan *pb.ReceiveInitResponse
 	pb.UnimplementedGoShareServer
 }
 
-func newServer(serverService *server.Service) *Server {
+func newServer() *Server {
 	return &Server{
-		mu:            sync.Mutex{},
-		relay:         make(map[string]chan *pb.ReceiveResponse),
-		relayInit:     make(map[string]chan *pb.ReceiveInitResponse),
-		serverService: serverService,
+		relay:     make(map[string]chan *pb.ReceiveResponse),
+		relayInit: make(map[string]chan *pb.ReceiveInitResponse),
 	}
 }
 
-func ListenAndServe(serverService *server.Service, withTLS bool, certPath, addr string) error {
+func ListenAndServe(withTLS bool, certPath, addr string) error {
 	serverOptions := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: 1 * time.Minute,
@@ -57,7 +53,7 @@ func ListenAndServe(serverService *server.Service, withTLS bool, certPath, addr 
 
 	s := grpc.NewServer(serverOptions...)
 
-	pb.RegisterGoShareServer(s, newServer(serverService))
+	pb.RegisterGoShareServer(s, newServer())
 
 	listener, err := net.Listen("tcp", addr)
 

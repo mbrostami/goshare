@@ -26,7 +26,7 @@ func (c *Client) Receive(ctx context.Context, id uuid.UUID, resChan chan *pb.Rec
 	ctx, span := tracer.NewSpan(ctx, "receiver")
 	defer span.End()
 
-	log.Debug().Msgf("client sending receive request")
+	log.Debug().Msgf("sharing sending receive request")
 	stream, err := c.conn.Receive(ctx, &pb.ReceiveRequest{Identifier: id.String()})
 	if err != nil {
 		return err

@@ -1,8 +1,12 @@
-package client
+package sharing
 
 import (
 	"context"
 	"errors"
+	"io"
+	"os"
+	"sync"
+
 	"github.com/google/uuid"
 	"github.com/mbrostami/goshare/api/grpc"
 	"github.com/mbrostami/goshare/api/grpc/pb"
@@ -10,9 +14,6 @@ import (
 	"github.com/mbrostami/goshare/pkg/tracer"
 	"github.com/rs/zerolog/log"
 	"github.com/schollz/progressbar/v3"
-	"io"
-	"os"
-	"sync"
 )
 
 func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string, withTLS, skipVerify bool) (string, error) {
