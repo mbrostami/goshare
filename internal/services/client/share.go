@@ -22,7 +22,7 @@ const (
 const MaxConcurrentShare = 0
 const ChunkSize = 1 * MB
 
-func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, servers []string) error {
+func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, servers []string, withTLS, insecure bool) error {
 	ctx, span := tracer.NewSpan(ctx, "sender-service")
 	defer span.End()
 
@@ -40,7 +40,7 @@ func (s *Service) Share(ctx context.Context, filePath string, uid uuid.UUID, ser
 
 	connections := make([]*grpc.Client, len(servers))
 	for i, server := range servers {
-		c, err := grpc.NewClient(ctx, server)
+		c, err := grpc.NewClient(ctx, server, withTLS, insecure)
 		if err != nil {
 			return err
 		}

@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) (string, error) {
+func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string, withTLS, skipVerify bool) (string, error) {
 	ctx, span := tracer.NewSpan(ctx, "receiver-service")
 	defer span.End()
 
@@ -28,7 +28,7 @@ func (s *Service) Receive(ctx context.Context, uid uuid.UUID, servers []string) 
 	connections := make([]*grpc.Client, 0, len(servers))
 	var err error
 	for _, server := range servers {
-		connection, err := grpc.NewClient(ctx, server)
+		connection, err := grpc.NewClient(ctx, server, withTLS, skipVerify)
 		if err != nil {
 			return "", err
 		}

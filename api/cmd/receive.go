@@ -12,7 +12,9 @@ import (
 )
 
 type receiveOptions struct {
-	Key string `short:"k" long:"key" description:"download key" required:"true"`
+	Key        string `short:"k" long:"key" description:"download key" required:"true"`
+	WithTLS    bool   `long:"with-tls" description:"connect with tls encryption"`
+	SkipVerify bool   `long:"skip-verify" description:"skip tls certificate verification"`
 }
 
 type receiveHandler struct {
@@ -37,11 +39,11 @@ func (h *receiveHandler) Run(ctx context.Context, command *flags.Command) error 
 	}
 
 	log.Debug().Msg("checking servers...")
-	if err := h.clientService.VerifyServers(ctx, servers); err != nil {
+	if err := h.clientService.VerifyServers(ctx, servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
 		return err
 	}
 
-	fileName, err := h.clientService.Receive(ctx, id, servers)
+	fileName, err := h.clientService.Receive(ctx, id, servers, h.opts.WithTLS, h.opts.SkipVerify)
 	if err != nil {
 		return err
 	}

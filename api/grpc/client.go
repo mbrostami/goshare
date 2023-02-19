@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/resolver/manual"
 	"strings"
@@ -20,14 +21,22 @@ type Client struct {
 	conn pb.GoShareClient
 }
 
-func NewClient(ctx context.Context, addr string) (*Client, error) {
-	config := &tls.Config{
-		InsecureSkipVerify: true,
+func NewClient(ctx context.Context, addr string, withTLS, skipVerify bool) (*Client, error) {
+	var dialOptions []grpc.DialOption
+	if withTLS {
+		var config tls.Config
+		if skipVerify {
+			config.InsecureSkipVerify = true
+		}
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(&config)))
+	} else {
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
+
 	conn, err := grpc.DialContext(
 		ctx,
 		addr,
-		grpc.WithTransportCredentials(credentials.NewTLS(config)),
+		dialOptions...,
 	)
 	if err != nil {
 		return nil, err

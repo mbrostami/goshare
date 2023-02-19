@@ -24,10 +24,10 @@ To share a file, use the following command:
 ```
 goshare share -f <path/to/file> -s server1:2022 -s server2:2030 
 ```
-The above command gives you a key code. Receiver needs this code to download the file. 
+The above command gives you a key code that needs to be shared with receiver in order to download the file. 
 
 ### Receiving files
-To check if there are any files available for you to receive, use the following command:
+Use the following command to receive the file:
 
 ```
 goshare receive -k KEY_CODE_FROM_SENDER
@@ -37,10 +37,14 @@ goshare receive -k KEY_CODE_FROM_SENDER
 To configure the server, you can provide the following options:
 
 ```
-goshare server
---port : listening port 
---ip   : listening ip
+goshare cert --host localhost --dst ./cert/
+
+goshare server --port 2202 --ip localhost --cert-path ./cert/
 ```
+
+## Todo
+- Make TLS optional
+- STUN
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.

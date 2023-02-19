@@ -36,23 +36,28 @@ func newServer(serverService *server.Service) *Server {
 	}
 }
 
-func ListenAndServe(serverService *server.Service, certPath, addr string) error {
-	tlsCredentials, err := credentials.NewServerTLSFromFile(
-		fmt.Sprintf("%s/cert.pem", certPath),
-		fmt.Sprintf("%s/key.pem", certPath),
-	)
-	if err != nil {
-		return err
-	}
-
-	sv := newServer(serverService)
-	s := grpc.NewServer(
-		grpc.Creds(tlsCredentials),
+func ListenAndServe(serverService *server.Service, withTLS bool, certPath, addr string) error {
+	serverOptions := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: 1 * time.Minute,
 		}),
-	)
-	pb.RegisterGoShareServer(s, sv)
+	}
+
+	if withTLS {
+		tlsCredentials, err := credentials.NewServerTLSFromFile(
+			fmt.Sprintf("%s/cert.pem", certPath),
+			fmt.Sprintf("%s/key.pem", certPath),
+		)
+		if err != nil {
+			return err
+		}
+
+		serverOptions = append(serverOptions, grpc.Creds(tlsCredentials))
+	}
+
+	s := grpc.NewServer(serverOptions...)
+
+	pb.RegisterGoShareServer(s, newServer(serverService))
 
 	listener, err := net.Listen("tcp", addr)
 
