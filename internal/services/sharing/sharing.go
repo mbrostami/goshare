@@ -21,7 +21,7 @@ func NewService() *Service {
 	return &Service{}
 }
 
-func (s *Service) VerifyServers(ctx context.Context, servers []string, withTLS, skipVerify bool) error {
+func (s *Service) VerifyServers(ctx context.Context, servers []string, caPath string, withTLS, skipVerify bool) error {
 	ctx, span := tracer.NewSpan(ctx, "verify-servers")
 	defer span.End()
 
@@ -30,7 +30,7 @@ func (s *Service) VerifyServers(ctx context.Context, servers []string, withTLS, 
 		server := server // https://golang.org/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
 			dialCtx, _ := context.WithTimeout(ctx, 15*time.Second)
-			c, err := grpc.NewClient(dialCtx, server, withTLS, skipVerify)
+			c, err := grpc.NewClient(dialCtx, server, caPath, withTLS, skipVerify)
 			if err != nil {
 				return err
 			}

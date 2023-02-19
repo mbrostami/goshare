@@ -12,6 +12,7 @@ import (
 type shareOptions struct {
 	File       string   `short:"f" long:"file" description:"file path you want to share" required:"true"`
 	Servers    []string `short:"s" long:"server" description:"address of the servers <ip>:<port>" required:"true"`
+	CAPath     string   `long:"ca-path" description:"CA's certificate path to verify server's certificate'"`
 	WithTLS    bool     `long:"with-tls" description:"connect with tls encryption"`
 	SkipVerify bool     `long:"skip-verify" description:"skip tls certificate verification"`
 }
@@ -30,7 +31,7 @@ func newShareHandler(sharingService *sharing.Service) *shareHandler {
 
 func (h *shareHandler) Run(ctx context.Context, command *flags.Command) error {
 	log.Debug().Msg("checking servers...")
-	if err := h.sharingService.VerifyServers(ctx, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
+	if err := h.sharingService.VerifyServers(ctx, h.opts.Servers, h.opts.CAPath, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
 		return err
 	}
 
@@ -39,5 +40,5 @@ func (h *shareHandler) Run(ctx context.Context, command *flags.Command) error {
 	fmt.Printf("share this key -> %s\n", key)
 
 	log.Debug().Msg("starting the share...")
-	return h.sharingService.Share(ctx, h.opts.File, uid, h.opts.Servers, h.opts.WithTLS, h.opts.SkipVerify)
+	return h.sharingService.Share(ctx, h.opts.File, uid, h.opts.Servers, h.opts.CAPath, h.opts.WithTLS, h.opts.SkipVerify)
 }

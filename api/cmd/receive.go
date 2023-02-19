@@ -13,6 +13,7 @@ import (
 
 type receiveOptions struct {
 	Key        string `short:"k" long:"key" description:"download key" required:"true"`
+	CAPath     string `long:"ca-path" description:"CA's certificate path to verify server's certificate'"`
 	WithTLS    bool   `long:"with-tls" description:"connect with tls encryption"`
 	SkipVerify bool   `long:"skip-verify" description:"skip tls certificate verification"`
 }
@@ -39,11 +40,11 @@ func (h *receiveHandler) Run(ctx context.Context, command *flags.Command) error 
 	}
 
 	log.Debug().Msg("checking servers...")
-	if err := h.sharingService.VerifyServers(ctx, servers, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
+	if err := h.sharingService.VerifyServers(ctx, servers, h.opts.CAPath, h.opts.WithTLS, h.opts.SkipVerify); err != nil {
 		return err
 	}
 
-	fileName, err := h.sharingService.Receive(ctx, id, servers, h.opts.WithTLS, h.opts.SkipVerify)
+	fileName, err := h.sharingService.Receive(ctx, id, servers, h.opts.CAPath, h.opts.WithTLS, h.opts.SkipVerify)
 	if err != nil {
 		return err
 	}

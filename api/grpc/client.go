@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"github.com/mbrostami/goshare/api/grpc/pb"
 	"github.com/mbrostami/goshare/pkg/tracer"
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/resolver/manual"
+	"os"
 	"strings"
 )
 
@@ -21,12 +23,28 @@ type Client struct {
 	conn pb.GoShareClient
 }
 
-func NewClient(ctx context.Context, addr string, withTLS, skipVerify bool) (*Client, error) {
+func NewClient(ctx context.Context, addr string, caPath string, withTLS, skipVerify bool) (*Client, error) {
 	var dialOptions []grpc.DialOption
 	if withTLS {
+		var certPool *x509.CertPool
+		if !skipVerify && len(caPath) > 0 {
+			// Load certificate of the CA who signed server's certificate
+			pemServerCA, err := os.ReadFile(caPath)
+			if err != nil {
+				return nil, err
+			}
+
+			certPool = x509.NewCertPool()
+			if !certPool.AppendCertsFromPEM(pemServerCA) {
+				return nil, fmt.Errorf("failed to add server CA's certificate")
+			}
+		}
+
 		config := tls.Config{
 			InsecureSkipVerify: skipVerify,
+			RootCAs:            certPool,
 		}
+
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(&config)))
 	} else {
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(insecure.NewCredentials()))
