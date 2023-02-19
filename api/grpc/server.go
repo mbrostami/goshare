@@ -91,7 +91,7 @@ func (s *Server) ShareInit(ctx context.Context, req *pb.ShareInitRequest) (*pb.S
 
 func (s *Server) waitingForReceiver(ctx context.Context, identifier string) (chan *pb.ReceiveInitResponse, error) {
 	startTime := time.Now()
-	waitFor := 10 * time.Second
+	waitFor := 60 * time.Second
 	bar := progressbar.NewOptions(
 		-1,
 		progressbar.OptionShowBytes(false),
